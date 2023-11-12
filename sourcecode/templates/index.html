@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="author" content="Warren Wang">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="images/facial_recognition.png">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <title>Attendance System</title>
+</head>
+<body>
+    <h1 class="display-1" style="text-align:center;">Attendance System</h1>
+
+    <!-- MAIN MENU -->
+    <div id="main_screen" class="screen">
+        <h2 class="display-3" style="text-align:center;">Main Menu Options:</h2>
+        <br>
+        <center>
+            <div style="width:30%;">
+                <div class="d-grid gap-2">
+                    <button id="goToEnrollmentScreen" type="button" class="btn btn-secondary btn-lg">Enroll New User</button><br><br>
+                    <button id="goToRecordAttendanceScreen" class="btn btn-secondary btn-lg">Record Attendance and Automated Benchmarking</button><br><br>
+                    <button id="goToPlotAttendanceScreen" class="btn btn-secondary btn-lg">Plot Attendance</button><br><br>
+                </div>
+            </div>
+            <button id="goToAdminScreen" class="btn btn-warning btn-lg">Administration</button>
+        </center>
+    </div>
+
+    <!-- ENROLLMENT -->
+    <div id="enrollment_screen" class="screen" style="display: none;">
+        <h2 class="display-3" style="text-align:center;">Enroll New User</h2>
+        <hr class="border border-secondary opacity-75">
+        
+        <div style="text-align:left;margin:1%;">
+            <button id="goToMainMenuFromEnrollment" type="button" class="btn btn-primary btn-lg">Main Menu</button><br><br>
+            <!-- user's name -->
+            <h2 class="display-4" style="text-align:center;">New User Name</h2>
+            <h5>Input your Name:</h5>
+            <input id="enrollmentUserNameInput" type="text"><br><br>
+
+            <!-- enroll via a video stream w/ voice -->
+            <h2 class="display-4" style="text-align:center;">Hybrid - Video + Audio</h2>
+            <button id="enrollmentStartHybridRecording" type="button" class="btn btn-secondary btn-lg">Start</button><br><br>
+            <button id="enrollmentStopHybridRecording" type="button" class="btn btn-secondary btn-lg">Stop</button><br><br>
+            
+
+            <!-- enroll via camera now -->
+            <h2 class="display-4" style="text-align:center;">Capture User Image Via Camera</h2>
+            <video id="enrollmentVideo" width="640" height="480" autoplay></video><br>
+            <button id="enrollmentTakePicture" type="button" class="btn btn-secondary btn-lg">Take Picture and Submit Name</button><br><br>
+
+            <!-- upload image via button -->
+            <h2 class="display-4" style="text-align:center;">Upload User Image</h2>
+            <form id="enrollmentImageUpload">
+                <!-- <label class="btn btn-secondary btn-lg">
+                    Browse file<input type="file" id="enrollmentFileUpload" accept="image/*">
+                </label> -->
+                <input type="file" id="enrollmentFileUpload" accept="image/*" name="fileUpload">
+                <input id="enrollmentImageUploadButton" type="button" class="btn btn-secondary btn-lg" value="Upload">
+            </form>
+        </div>
+    
+        <div style="text-align:left;margin:0.5%;">
+            <h2>Captured Images and Landmarks Detected by SIFT for Demonstration Purposes</h2><br>
+            <button id="enrollmentClearDisplayedPictures" type="button" class="btn btn-info btn-lg">Clear all Displayed Pictures</button><br>
+            <hr class="border border-secondary opacity-75">
+            <table style="width:100%">
+            <tr>
+                <th>Original Image</th>
+                <th>Features Extracted</th>
+            </tr>
+            <tr>
+                <td><div id="enrollment_img1_display"></div></td>
+                <td><div id="enrollment_img2_display"></div></td>
+            </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- RECORD ATTENDANCE and BENCHMARKING -->
+    <div id="record_attendance_screen" class="screen" style="display: none;">
+        <h2 class="display-3" style="text-align:center;">Record Student Attendance and Automated Benchmarking</h2>
+        <hr class="border border-secondary opacity-75">
+        <table>
+            <tr>
+                <th style="text-align:left;padding-right:100px;">
+                    <button id="goToMainMenuFromRecordAttendance" type="button" class="btn btn-primary btn-lg">Main Menu</button><br>
+                    <br>
+                    <form id="myForm">
+                        <h5>Please select the feature extracton method:</h5>
+                        <div id="attendanceFeatureExtractionMethod">
+                            <input type="radio" id="SIFT" name="feature_extraction" value="SIFT" checked>
+                            <label for="SIFt">SIFT</label><br>
+                            <input type="radio" id="CNN" name="feature_extraction" value="CNN">
+                            <label for="CNN">CNN</label><br>
+                            <input type="radio" id="PretrainedModel" name="feature_extraction" value="PretrainedModel">
+                            <label for="PretrainedModel">VGG16</label>
+                        </div>
+                        <br>
+                    </form>
+                    <h5>Similarity Score Threshold:</h5>
+                    <input type="number" step="0.01" min="0.0" max="1.0" value="0.5" id="attendanceScoreThresholdInput"><br><br>
+                    <button id="startTakingAttendance" type="button" class="btn btn-secondary">Start Taking Attendance</button>
+                    <button id="stopTakingAttendance" type="button" class="btn btn-secondary">Stop Taking Attendance</button>
+                    <div id="takingAttendanceIndicator" class="light off"></div><br><br>
+                    <button id="resetTakingAttendance" type="button" class="btn btn-info">Reset Current Attendance</button><br>
+                    <hr class="border border-secondary opacity-75">
+                    <h3>Found present in video:</h3>
+                    <button id="clearAttendanceMarkedPresentField" type="button" class="btn btn-info">Clear</button>
+                    <hr class="border border-secondary opacity-75">
+                </th>
+                <th style="text-align:center;">
+                    <video id="attendanceVideo" width="640" height="480" autoplay></video><br>
+                </th>
+            </tr>
+            <tr>
+                <th style="padding-right:100px;vertical-align:top;">
+                    <table style="width:100%" id="attendanceMarkedPresentField">
+                    <tr>
+                        <th>Name</th>
+                        <th>Raw Similarity Score</th>
+                        <th>Score Threshold</th>
+                    </tr>
+                    </table>
+                </th>
+                <th style="text-align:left;">
+                    <!-- Automatic testing of all three Systems -->
+                    <h3>Automated Testing and Evaluation of Feature Extraction Methods</h3>
+
+                    <p>Number of iterations to run for each Method:</p>
+                    <input id="automatedAttendanceTestingNumIters" type="number" value="10"><br>
+                    <p>Name of person present (Ground Truth):</p>
+                    <input id="automatedAttendanceTestingGroundTruth" type="text"><br><br>
+                    Similarity Score Thresholds:<br>
+                    SIFT: <input type="number" step="0.01" min="0.0" max="1.0" value="0.5" id="automatedAttendanceTestingScoreThresholdInput_SIFT"><br>
+                    CNN: <input type="number" step="0.01" min="0.0" max="1.0" value="0.5" id="automatedAttendanceTestingScoreThresholdInput_CNN"><br>
+                    VGG16: <input type="number" step="0.01" min="0.0" max="1.0" value="0.5" id="automatedAttendanceTestingScoreThresholdInput_VGG16"><br>
+                    <br>
+                    <button id="automatedAttendanceTestingStart" type="button" class="btn btn-success">Start</button>
+                    <hr class="border border-secondary opacity-75">
+
+                    <h4>Final Results</h4>
+                    <button id="automatedAttendanceTestingClearFinalResultsDisplay" type="button" class="btn btn-info">Clear</button>
+                    <div id="automatedAttendanceTestingFinalResultsDisplayField"></div>
+                    <hr class="border border-secondary opacity-75">
+
+                    <h4>Testing Outputs:</h4>
+                    <button id="automatedAttendanceTestingClearDisplay" type="button" class="btn btn-info">Clear</button>
+                    <table style="width:100%" id="automatedAttendanceTestingDisplayField">
+                        <tr>
+                            <th>Name</th>
+                            <th>Raw Similarity Score</th>
+                            <th>Score Threshold</th>
+                        </tr>
+                    </table>
+                </th>
+            </tr>
+        </table>
+   </div>
+
+    <!-- PLOT ATTENDANCE -->
+    <div id="plot_attendance_screen" class="screen" style="display: none;">
+        <h2 class="display-3" style="text-align:center;">Plot Attendance</h2>
+        <hr class="border border-secondary opacity-75">
+
+        <div class="d-flex justify-content-center">
+            <button id="goToMainMenuFromPlotAttendance" type="button" class="btn btn-primary btn-lg mx-auto">Main Menu</button>
+            <button id="clearAttendanceCSVFile" type="button" class="btn btn-danger btn-lg mx-auto">Clear Attendance File</button><br>
+        </div>
+        <br><br>
+        <div class="d-flex justify-content-center">
+            <button id="createAttendanceHistogram" type="button" class="btn btn-success btn-lg mx-5">Histogram of Attendance Frequencies</button><br>
+            <button id="clearAttendanceImages" type="button" class="btn btn-info btn-lg mx-5">Clear Images</button><br>
+        </div>
+
+        <hr class="border border-secondary opacity-75">
+        <div id="plotAttendanceImageDisplay"></div>
+    </div>
+
+    <!-- ADMIN Page -->
+    <div id="admin_screen" class="screen" style="display: none;">
+        <h2 class="display-3" style="text-align:center;">Administration Page</h2>
+        <hr class="border border-secondary opacity-75">
+        <button id="goToMainMenuFromAdmin" type="button" class="btn btn-primary btn-lg">Main Menu</button>
+        <br><br>
+        <button id="reEnrollAllCurrentUsers" type="button" class="btn btn-danger">Re-extract all features from faces in db</button><br>
+        <hr class="border border-secondary opacity-75">
+        <button id="adminClear" type="button" class="btn btn-info">Clear</button>
+        <div id="adminDisplayField"></div>
+    </div>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/script.js')}}"></script>
+</body>
+</html>
