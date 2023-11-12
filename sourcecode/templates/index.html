@@ -35,6 +35,10 @@
         
         <div style="text-align:left;margin:1%;">
             <button id="goToMainMenuFromEnrollment" type="button" class="btn btn-primary btn-lg">Main Menu</button><br><br>
+
+            <video id="enrollmentVideo" width="640" height="480" autoplay></video><br>
+
+
             <!-- user's name -->
             <h2 class="display-4" style="text-align:center;">New User Name</h2>
             <h5>Input your Name:</h5>
@@ -42,13 +46,14 @@
 
             <!-- enroll via a video stream w/ voice -->
             <h2 class="display-4" style="text-align:center;">Hybrid - Video + Audio</h2>
-            <button id="enrollmentStartHybridRecording" type="button" class="btn btn-secondary btn-lg">Start</button><br><br>
+            <button id="enrollmentStartHybridRecording" type="button" class="btn btn-secondary btn-lg">Start</button>
             <button id="enrollmentStopHybridRecording" type="button" class="btn btn-secondary btn-lg">Stop</button><br><br>
-            
+            <div id="enrollmentHybridDisplay"></div>
+            <button id="enrollmentHybridClearDisplay" type="button" class="btn btn-info btn-lg">Clear Captured Video</button><br>
 
             <!-- enroll via camera now -->
             <h2 class="display-4" style="text-align:center;">Capture User Image Via Camera</h2>
-            <video id="enrollmentVideo" width="640" height="480" autoplay></video><br>
+            
             <button id="enrollmentTakePicture" type="button" class="btn btn-secondary btn-lg">Take Picture and Submit Name</button><br><br>
 
             <!-- upload image via button -->

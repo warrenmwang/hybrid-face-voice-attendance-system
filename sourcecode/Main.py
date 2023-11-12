@@ -27,6 +27,17 @@ def upload():
 
     return send_file(SIFT_img_with_keypoints, mimetype='image/png')
 
+@app.route('/enrollment/hybrid', methods=['POST'])
+def uploadHybrid():
+    # get video, audio, username
+    videoAndAudio = request.files['videoAndAudio']
+    username = request.form.get('text')
+
+    print('videoAndAudio', videoAndAudio)
+    print('username', username)
+
+    return jsonify({'message': None}), 200
+
 @app.route('/attendance', methods=['POST'])
 def attendance():
     '''

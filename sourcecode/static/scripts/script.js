@@ -1,4 +1,3 @@
-
 // ------------------------------------ Shared functions ------------------------------------
 function getRadioSelectedValue(radios) {
     // gets the selected value out of a multiple choice radio button table
@@ -19,15 +18,27 @@ function removeAddedElementsFromList(list){
 }
 
 // start continuous video stream for specified video display
-function startContinuousVideoStream(divId) {
+function startContinuousVideoStream(divId, audioToggle = false) {
     var video = document.getElementById(divId);
     // Get access to the camera to prepare for continuous feed
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(function(mediaStream) {
-            stream = mediaStream;
-            video.srcObject = stream;
-            video.play();
-        });
+
+        if(audioToggle){
+            // with audio
+            video.muted = true; // to prevent the audio from playing back when the video is on, audio will still be recorded
+            navigator.mediaDevices.getUserMedia({ video: true , audio: { sampleRate: 48000 }}).then(function(mediaStream) {
+                stream = mediaStream;
+                video.srcObject = stream;
+                video.play();
+            });
+        }else{
+            // without audio
+            navigator.mediaDevices.getUserMedia({ video: true}).then(function(mediaStream) {
+                stream = mediaStream;
+                video.srcObject = stream;
+                video.play();
+            });
+        }
     }
 }
 
@@ -67,7 +78,7 @@ var stream; // keep track of a continuous video stream for enroll/attendance, ne
 // from main menu to another screen
 document.getElementById('goToEnrollmentScreen').addEventListener('click', function() {
     transitionScreens('main_screen', 'enrollment_screen');
-    startContinuousVideoStream('enrollmentVideo');
+    startContinuousVideoStream('enrollmentVideo', true);
 });
 document.getElementById('goToRecordAttendanceScreen').addEventListener('click', function() {
     transitionScreens('main_screen', 'record_attendance_screen');
@@ -229,7 +240,92 @@ document.getElementById('enrollmentImageUploadButton').addEventListener('click',
     });
 });
 
+let mediaRecorder;
+let enrollmentRecordedChunks = [];
+let enrollmentHybridVideoDisplayElements = [];
+
+document.getElementById('enrollmentHybridClearDisplay').addEventListener('click', function() {
+    removeAddedElementsFromList(enrollmentHybridVideoDisplayElements);
+})
+
+// enrollment hybrid event listeners
+document.getElementById('enrollmentStartHybridRecording').addEventListener('click', enrollmentHybridStartRecording);
+document.getElementById('enrollmentStopHybridRecording').addEventListener('click', enrollmentHybridStopRecording);
+
 // try sending both a video stream and an audio stream
+
+// start recording
+ function enrollmentHybridStartRecording() {
+    if (!stream) {
+        console.error('No video stream up and running');
+        return;
+    }
+
+    var inputField = document.getElementById('enrollmentUserNameInput');
+    var username = inputField.value;
+    if (username === '') {
+        alert('Name cannot be empty.');
+        return;
+    }
+
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.addEventListener('dataavailable', event => {
+        enrollmentRecordedChunks.push(event.data);
+    })
+
+    mediaRecorder.start();
+}
+
+// stop recording and then send
+function enrollmentHybridStopRecording() {
+    var inputField = document.getElementById('enrollmentUserNameInput');
+    var username = inputField.value;
+    if (username === '') {
+        alert('Name cannot be empty.');
+        return;
+    }
+
+    mediaRecorder.addEventListener('stop', () => {
+        // convert the recorded video+audio chunks into single blob
+        const recordedBlob = new Blob(enrollmentRecordedChunks, { type: 'video/webm'});
+        enrollmentRecordedChunks = []; // clear data buffer
+
+        // create video element to be displayed directly in html
+        const videoElement = document.createElement('video');
+
+        // Create a URL from the blob
+        const url = URL.createObjectURL(recordedBlob);
+
+        // Set the source of the video element to the URL
+        videoElement.src = url;
+
+        // Set the controls attribute so the user can control the video
+        videoElement.controls = true;
+
+        // display the captured video+audio
+        document.getElementById('enrollmentHybridDisplay').appendChild(videoElement);
+        enrollmentHybridVideoDisplayElements.push(videoElement);
+
+        // Create a FormData object
+        var formData = new FormData();
+
+        // add video and audio
+        formData.append('videoAndAudio', recordedBlob);
+
+        // add username
+        formData.append('text', username);
+
+        // send to backend
+        fetch('/enrollment/hybrid', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.blob())
+    });
+
+    mediaRecorder.stop();
+}
+
 
 // RECORD ATTENDANCE
 let featureExtractors = ['SIFT', 'CNN', 'VGG16'];
