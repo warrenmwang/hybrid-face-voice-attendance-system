@@ -287,6 +287,9 @@ function enrollmentHybridStopRecording() {
     }
 
     mediaRecorder.addEventListener('stop', () => {
+        let enrollmentHybridDisplay = document.getElementById('enrollmentHybridDisplay');
+        var br = document.createElement('br');
+        
         // convert the recorded video+audio chunks into single blob
         const recordedBlob = new Blob(enrollmentRecordedChunks, { type: 'video/webm'});
         enrollmentRecordedChunks = []; // clear data buffer
@@ -304,8 +307,10 @@ function enrollmentHybridStopRecording() {
         videoElement.controls = true;
 
         // display the captured video+audio
-        document.getElementById('enrollmentHybridDisplay').appendChild(videoElement);
+        enrollmentHybridDisplay.appendChild(videoElement);
+        enrollmentHybridDisplay.appendChild(br);
         enrollmentHybridVideoDisplayElements.push(videoElement);
+        enrollmentHybridVideoDisplayElements.push(br);
 
         // Create a FormData object
         var formData = new FormData();
@@ -320,7 +325,15 @@ function enrollmentHybridStopRecording() {
         fetch('/enrollment/hybrid', {
             method: 'POST',
             body: formData
-        }).then(response => response.blob())
+        })
+        .then(response => response.json())
+        .then(data => {
+            var textNode = document.createTextNode(data.message);
+            enrollmentHybridDisplay.appendChild(textNode);
+            enrollmentHybridDisplay.appendChild(br);
+            enrollmentHybridVideoDisplayElements.push(textNode);
+            enrollmentHybridVideoDisplayElements.push(br);
+        });
     });
 
     mediaRecorder.stop();

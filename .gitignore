@@ -1,3 +1,6 @@
 database/
 __pycache__/
 *.csv
+tmp/
+*.pkl
+*.ipynb

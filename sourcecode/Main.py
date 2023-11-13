@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, send_file, jsonify
+from werkzeug.utils import secure_filename
 import cv2
 import numpy as np
 from io import BytesIO
 from Attendance import AttendanceSystem
+import os
+from pydub import AudioSegment
+from Pickling import PickleHelper
 
 system = AttendanceSystem()
 
@@ -33,10 +37,34 @@ def uploadHybrid():
     videoAndAudio = request.files['videoAndAudio']
     username = request.form.get('text')
 
-    print('videoAndAudio', videoAndAudio)
+    videoAndAudio.save('temp.webm')
+
+    # Use OpenCV to read the video frames into a numpy array
+    video = cv2.VideoCapture("temp.webm")
+    frames = []
+    while True:
+        ret, frame = video.read()
+        if not ret:
+            break
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert opencv's BGR to RGB format
+        frames.append(frame)
+    video_frames = np.array(frames)
+    
+    # read the audio into a numpy array
+    audio = AudioSegment.from_file("temp.webm", format="webm")
+    audio_samples = np.array(audio.get_array_of_samples())
+    
+    os.remove("temp.webm")
+
+    print(f"{video_frames.shape=}")
+    print(f"{audio_samples=}")
     print('username', username)
 
-    return jsonify({'message': None}), 200
+    pickler = PickleHelper()
+    pickler.save_to('video.pkl', video_frames)
+    pickler.save_to('audio.pkl', audio_samples)
+
+    return jsonify({'message': 'New video+audio enrolled.'}), 200
 
 @app.route('/attendance', methods=['POST'])
 def attendance():
