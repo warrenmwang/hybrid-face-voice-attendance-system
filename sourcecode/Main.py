@@ -56,13 +56,17 @@ def uploadHybrid():
     
     os.remove("temp.webm")
 
-    print(f"{video_frames.shape=}")
-    print(f"{audio_samples=}")
-    print('username', username)
+    # TODO: return the [random orig frame, extracted feature frame, mel spectrogram of voice]
+    d = system.hybridEnroll(username, video_frames, audio_samples)
 
-    pickler = PickleHelper()
-    pickler.save_to('video.pkl', video_frames)
-    pickler.save_to('audio.pkl', audio_samples)
+    print(f"INFO: {d=}")
+    # print(f"{video_frames.shape=}")
+    # print(f"{audio_samples=}")
+    # print('username', username)
+
+    # pickler = PickleHelper()
+    # pickler.save_to('video.pkl', video_frames)
+    # pickler.save_to('audio.pkl', audio_samples)
 
     return jsonify({'message': 'New video+audio enrolled.'}), 200
 

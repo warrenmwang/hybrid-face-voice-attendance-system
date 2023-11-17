@@ -23,6 +23,7 @@ class AttendanceRecording:
         self.attendance_allowed_time_interal = 3600 # [seconds] (1 hour)
         self.recently_recognized_students = {} # username -> logged in time (datetime)
         self.databasePath = databasePath
+        self.faceDatabasePath = f"{databasePath}/face"
         self.pickler = PickleHelper()
         self.SIFT = SIFT()
         self.CNN = CNN()
@@ -77,9 +78,9 @@ class AttendanceRecording:
         '''
         _, test_descriptors, _ = self.SIFT.process_face(test_image)
         scores = [] 
-        for person in os.listdir(self.databasePath):
-            for pickle in os.listdir(f"{self.databasePath}/{person}/features"):
-                picklePath = f"{self.databasePath}/{person}/features/{pickle}"
+        for person in os.listdir(self.faceDatabasePath):
+            for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
+                picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
                 T = self.pickler.load_back(picklePath) 
                 name, db_image, db_test_descriptors = T[0], T[1], T[2]
                 # images that SIFT failed to grab the features will be of Nonetype, skip those by setting score to 0
@@ -100,9 +101,9 @@ class AttendanceRecording:
         '''
         scores = []
         test_image_embeddings = self.CNN.process_face(test_image)
-        for person in os.listdir(self.databasePath):
-            for pickle in os.listdir(f"{self.databasePath}/{person}/features"):
-                picklePath = f"{self.databasePath}/{person}/features/{pickle}"
+        for person in os.listdir(self.faceDatabasePath):
+            for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
+                picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
                 T = self.pickler.load_back(picklePath) 
                 name, db_image, _, db_image_embeddings = T[0], T[1], T[2], T[3]
                 score = self.CNN.compute_similarity_for_attendance(db_image_embeddings, test_image_embeddings)
@@ -119,9 +120,9 @@ class AttendanceRecording:
         '''
         scores = []
         test_image_embeddings = self.PretrainedModel.process_face(test_image)
-        for person in os.listdir(self.databasePath):
-            for pickle in os.listdir(f"{self.databasePath}/{person}/features"):
-                picklePath = f"{self.databasePath}/{person}/features/{pickle}"
+        for person in os.listdir(self.faceDatabasePath):
+            for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
+                picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
                 T = self.pickler.load_back(picklePath) 
                 name, db_image, _, _, db_image_embeddings = T[0], T[1], T[2], T[3], T[4]
                 score = self.PretrainedModel.compute_similarity_for_attendance(db_image_embeddings, test_image_embeddings)
@@ -279,7 +280,16 @@ class AttendanceSystem:
         if not os.path.exists(self.attendance_file):
             touch(self.attendance_file)
 
+    def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> dict:
+        '''
+        hybrid enrollment uses both a videostream of the user and an audiostream of the using saying a particular phrase
+        '''
+        return self.user_enrollment.hybridEnroll(name, video, audio)
+
     def enroll(self, name, picture) -> dict:
+        '''
+        regular enrollment uses just a picture of the user to enroll
+        '''
         return self.user_enrollment.enroll(name, picture)
 
     def recordAttendance(self, image : np.ndarray, featureExtractionMethod : str, scoreThreshold : float) -> str:

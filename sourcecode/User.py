@@ -4,6 +4,7 @@ import os
 import re
 from Pickling import PickleHelper
 import numpy as np
+from SpeakerRecognition import SpeakerRecognition
 
 def countFilesInDir(dir : str) -> int:
     # counts the number of files in a dir
@@ -28,9 +29,13 @@ def replace_illegal_chars(filename):
 
 class UserEnrollment:
     def __init__(self):
-        self.outputDir = "./database"
-        if not os.path.exists(self.outputDir):
-            os.mkdir(self.outputDir)
+        self.faceImageOutputPath = "./database/face"
+        self.audioImageOutputPath = "./database/voice"
+        if not os.path.exists(self.faceImageOutputPath):
+            os.mkdir(self.faceImageOutputPath)
+        if not os.path.exists(self.audioImageOutputPath):
+            os.mkdir(self.audioImageOutputPath)
+        self.speakerRecognition = SpeakerRecognition()
         self.pickler = PickleHelper()
         self.SIFT = SIFT()
         self.CNN = CNN()
@@ -43,21 +48,21 @@ class UserEnrollment:
         and replace all of the old features in the db
         '''
         # clear all .pkl files from db
-        delete_pkl_files(self.outputDir)
+        delete_pkl_files(self.faceImageOutputPath)
         
-        for personName in os.listdir(self.outputDir):
-            for imageName in os.listdir(f"{self.outputDir}/{personName}/images"):
-                imagePath = f"{self.outputDir}/{personName}/images/{imageName}"
+        for personName in os.listdir(self.faceImageOutputPath):
+            for imageName in os.listdir(f"{self.faceImageOutputPath}/{personName}/images"):
+                imagePath = f"{self.faceImageOutputPath}/{personName}/images/{imageName}"
                 image = cv2.imread(imagePath)
 
                 features = self.extractFeaturesFromImage(image)
                 _, sift_test_descriptors, _ = features['SIFT'][0], features['SIFT'][1], features['SIFT'][2]
                 cnn_embeddings = features['CNN']
-                vgg16_embeddings = features['VGG16']
+                vgg_embeddings = features['VGG']
 
-                num = countFilesInDir(f"{self.outputDir}/{personName}/features")
-                featuresSavePath = f"{self.outputDir}/{personName}/features"
-                T = (personName, image, sift_test_descriptors, cnn_embeddings, vgg16_embeddings)
+                num = countFilesInDir(f"{self.faceImageOutputPath}/{personName}/features")
+                featuresSavePath = f"{self.faceImageOutputPath}/{personName}/features"
+                T = (personName, image, sift_test_descriptors, cnn_embeddings, vgg_embeddings)
                 self.pickler.save_to(f"{featuresSavePath}/{num+1}.pkl", T)
         
         return 'Done'
@@ -78,8 +83,23 @@ class UserEnrollment:
         return {
             'SIFT': (sift_test_keypoints, sift_test_descriptors, extracted_face_image),
             'CNN': cnn_embeddings,
-            'VGG16': pretrained_model_embeddings
+            'VGG': pretrained_model_embeddings
         }
+
+    def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> dict:
+        '''
+        Given the captured video stream, voice recording, and name, enroll this user into the database
+        by extracting features for both video (some select images from the video and from the audio)
+
+        Returns a dict containing a random frame that we extracted features from (original and the extracted features image) and a mel spectrogram image of the voice
+        '''
+        d = {}
+
+        # TODO:
+
+        return d
+
+
 
     def enroll(self, name : str, image : np.ndarray) -> dict:
         '''
@@ -87,7 +107,7 @@ class UserEnrollment:
         their name, image, and extracted features
         '''
         name = replace_illegal_chars(name).lower().replace(' ', '_')
-        imageSavePath = f"{self.outputDir}/{name}/images"
+        imageSavePath = f"{self.faceImageOutputPath}/{name}/images"
         if not os.path.exists(imageSavePath):
             os.makedirs(imageSavePath)
 
@@ -95,7 +115,7 @@ class UserEnrollment:
         features = self.extractFeaturesFromImage(image)
         sift_test_keypoints, sift_test_descriptors, extracted_face_image = features['SIFT'][0], features['SIFT'][1], features['SIFT'][2]
         cnn_embeddings = features['CNN']
-        vgg16_embeddings = features['VGG16']
+        vgg_embeddings = features['VGG']
         
         # 3. Save tuple to database folder
         # save original image
@@ -105,12 +125,12 @@ class UserEnrollment:
         print(f"INFO: Now {name} has {num+1} images and extracted features in database")
 
         # ensure the directory for extracted features exists
-        featuresSavePath = f"{self.outputDir}/{name}/features"
+        featuresSavePath = f"{self.faceImageOutputPath}/{name}/features"
         if not os.path.exists(featuresSavePath):
             os.mkdir(featuresSavePath)
 
         # pickle/save extracted features
-        T = (name, image, sift_test_descriptors, cnn_embeddings, vgg16_embeddings)
+        T = (name, image, sift_test_descriptors, cnn_embeddings, vgg_embeddings)
         self.pickler.save_to(f"{featuresSavePath}/{num+1}.pkl", T)
 
         # return sift image if face found
