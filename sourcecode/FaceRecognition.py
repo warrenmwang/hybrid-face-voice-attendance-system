@@ -6,7 +6,7 @@ import keras
 from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
 from scipy.spatial.distance import cosine
-from tensorflow.keras.applications.vgg16 import VGG16
+from tensorflow.keras.applications.vgg19 import VGG19
 from PIL import Image
 
 class SIFT:
@@ -126,7 +126,7 @@ class CNN:
 
 class PretrainedModel:
     def __init__(self):
-        base_model = VGG16(weights='imagenet', include_top=False, pooling='avg')
+        base_model = VGG19(weights='imagenet', include_top=False, pooling='avg')
         self.model = Model(inputs=base_model.input, outputs=base_model.output)
 
     def preprocess_image(self, image_array : np.ndarray):
