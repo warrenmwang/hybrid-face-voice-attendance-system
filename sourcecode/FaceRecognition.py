@@ -56,7 +56,7 @@ class SIFT:
         score = sum(1 / (distance + 1e-6) for distance in distances)
         return score
     
-    def process_face(self, test_image : np.ndarray):
+    def process(self, test_image : np.ndarray):
         '''
         takes a test_img (cv2 image)
         and uses SIFT to get the features
@@ -105,7 +105,7 @@ class CNN:
         img = np.expand_dims(img, axis=[0, -1])
         return img
 
-    def process_face(self, test_image : np.ndarray):
+    def process(self, test_image : np.ndarray):
         '''
         extract the features from the test_image and return the embeddings
         '''
@@ -137,9 +137,9 @@ class PretrainedModel:
         img_array = keras.applications.vgg16.preprocess_input(img_array)
         return img_array
     
-    def process_face(self, test_image : np.ndarray):
+    def process(self, test_image : np.ndarray):
         '''
-        process the given input image and return the embeddings after passing the image thru the model
+        predict on the given input image and return the embeddings after passing the image thru the model
         '''
         img = self.preprocess_image(test_image)
         embeddings = self.model.predict(img)

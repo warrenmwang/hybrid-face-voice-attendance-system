@@ -30,11 +30,11 @@ def replace_illegal_chars(filename):
 class UserEnrollment:
     def __init__(self):
         self.faceImageOutputPath = "./database/face"
-        self.audioImageOutputPath = "./database/voice"
+        self.audioOutputPath = "./database/voice"
         if not os.path.exists(self.faceImageOutputPath):
             os.mkdir(self.faceImageOutputPath)
-        if not os.path.exists(self.audioImageOutputPath):
-            os.mkdir(self.audioImageOutputPath)
+        if not os.path.exists(self.audioOutputPath):
+            os.mkdir(self.audioOutputPath)
         self.speakerRecognition = SpeakerRecognition()
         self.pickler = PickleHelper()
         self.SIFT = SIFT()
@@ -47,6 +47,8 @@ class UserEnrollment:
         this function allows us to recompute new extracted features based off of enroll's functionality
         and replace all of the old features in the db
         '''
+        # TODO: add voice reenrollment!
+
         # clear all .pkl files from db
         delete_pkl_files(self.faceImageOutputPath)
         
@@ -72,13 +74,13 @@ class UserEnrollment:
         Given an image, extract features using all feature extractors
         '''
         # SIFT
-        sift_test_keypoints, sift_test_descriptors, extracted_face_image = self.SIFT.process_face(image)
+        sift_test_keypoints, sift_test_descriptors, extracted_face_image = self.SIFT.process(image)
 
         # CNN
-        cnn_embeddings = self.CNN.process_face(image)
+        cnn_embeddings = self.CNN.process(image)
 
         # Pretrained models
-        pretrained_model_embeddings = self.PretrainedModel.process_face(image)
+        pretrained_model_embeddings = self.PretrainedModel.process(image)
 
         return {
             'SIFT': (sift_test_keypoints, sift_test_descriptors, extracted_face_image),
@@ -91,21 +93,68 @@ class UserEnrollment:
         Given the captured video stream, voice recording, and name, enroll this user into the database
         by extracting features for both video (some select images from the video and from the audio)
 
+        Inputs:
+            name - str (e.g. bob)
+            video - np.ndarray (shape (Frames, H, W, Dims)) -- e.g. (118, 480, 640, 3)
+                if Dims == 3, RGB, else if Dims == 1, Grayscale [0,255] (NOTE: should be 3 here)
+            audio - np.ndarray (shape (length, )) -- e.g. (375696,) -- array of ints of magnitudes 
+
         Returns a dict containing a random frame that we extracted features from (original and the extracted features image) and a mel spectrogram image of the voice
         '''
         d = {}
 
-        # TODO:
+        # randomly select 30 frames from video to enroll
+        rng = np.random.default_rng()
+        random_frame_indices = rng.choice(len(video), size=30, replace=False)
+        for i in random_frame_indices:
+            tmp = self.enroll(name, video[i])
+        d['SIFT_image'] = tmp['SIFT_image'] # grab the last sift image among the randomly selected frames to enroll
+
+        # extract features from voice and enroll that
+        mel_spectrogram = self.enrollVoice(name, audio)
+        d['audio_melspectrogram'] = mel_spectrogram
 
         return d
 
+    def enrollVoice(self, name, audio : np.ndarray):
+        '''
+        enroll a voice sample
 
+        Inputs:
+            audio - np.ndarray (shape (length, )) -- e.g. (375696,) -- array of ints of magnitudes 
+        '''
+        # 1. create dirs for audio and extracted features for this person if not exist
+        name = replace_illegal_chars(name).lower().replace(' ', '_')
+        audioSavePath = f"{self.audioOutputPath}/{name}/audio"
+        featuresSavePath = f"{self.audioOutputPath}/{name}/features"
+        if not os.path.exists(audioSavePath):
+            os.makedirs(audioSavePath)
+        if not os.path.exists(featuresSavePath):
+            os.makedirs(featuresSavePath)
+
+        # save original audio
+        num = countFilesInDir(audioSavePath) # get number of current images
+        filename = f"{name}-{num+1}" # save new image with a number of current images + 1
+        self.pickler.save_to(f"{audioSavePath}/{filename}.pkl", audio)
+
+        # 2. extract features
+        mel_spectrogram = self.speakerRecognition.create_melspectrogram(audio)
+        # TODO: modify the mel_spectrogram matrix of values into an actual "image"
+
+        embeddings = self.PretrainedModel.process(mel_spectrogram)
+
+        # 3. save extracted features
+        T = (name, embeddings)
+        self.pickler.save_to(f"{featuresSavePath}/{filename}.pkl", T)
+
+        return mel_spectrogram
 
     def enroll(self, name : str, image : np.ndarray) -> dict:
         '''
         Given the captured image and name, enroll this user into the database by saving
         their name, image, and extracted features
         '''
+        # 1. create dir for this person if not exist
         name = replace_illegal_chars(name).lower().replace(' ', '_')
         imageSavePath = f"{self.faceImageOutputPath}/{name}/images"
         if not os.path.exists(imageSavePath):
@@ -130,6 +179,7 @@ class UserEnrollment:
             os.mkdir(featuresSavePath)
 
         # pickle/save extracted features
+        # TODO: remove unnecessary the image being pickled
         T = (name, image, sift_test_descriptors, cnn_embeddings, vgg_embeddings)
         self.pickler.save_to(f"{featuresSavePath}/{num+1}.pkl", T)
 
