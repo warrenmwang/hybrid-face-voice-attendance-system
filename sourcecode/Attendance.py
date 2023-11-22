@@ -280,15 +280,17 @@ class AttendanceSystem:
         if not os.path.exists(self.attendance_file):
             touch(self.attendance_file)
 
-    def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> dict:
+    def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
         '''
         hybrid enrollment uses both a videostream of the user and an audiostream of the using saying a particular phrase
+        returns tuple of (random orig frame, extracted feature frame, mel spectrogram of voice)
         '''
         return self.user_enrollment.hybridEnroll(name, video, audio)
 
-    def enroll(self, name, picture) -> dict:
+    def enroll(self, name, picture) -> np.ndarray:
         '''
         regular enrollment uses just a picture of the user to enroll
+        returns the image with the face detected and SIFT keypoints marked
         '''
         return self.user_enrollment.enroll(name, picture)
 

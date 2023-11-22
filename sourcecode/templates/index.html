@@ -49,7 +49,19 @@
             <p>Please say the phrase "The quick brown fox jumps over the lazy dog"</p>
             <button id="enrollmentStartHybridRecording" type="button" class="btn btn-secondary btn-lg">Start</button>
             <button id="enrollmentStopHybridRecording" type="button" class="btn btn-secondary btn-lg">Stop</button><br><br>
-            <div id="enrollmentHybridDisplay"></div>
+            <div id="enrollmentHybridDisplay"></div> <!-- where the recorded video gets displayed -->
+            <table style="width:100%">
+                <tr>
+                    <th>Frame</th>
+                    <th>Features Extracted</th>
+                    <th>Mel Spectrogram of Voice</th>
+                </tr>
+                <tr>
+                    <th><div id="enrollmentHybrid_img1_display"></div></th>
+                    <th><div id="enrollmentHybrid_img2_display"></div></th>
+                    <th><div id="enrollmentHybrid_img3_display"></div></th>
+                </tr>
+            </table>
             <button id="enrollmentHybridClearDisplay" type="button" class="btn btn-info btn-lg">Clear Captured Video</button><br>
 
             <!-- enroll via camera now -->

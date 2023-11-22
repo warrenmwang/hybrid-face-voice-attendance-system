@@ -101,6 +101,7 @@ class UserEnrollment:
 
         Returns a dict containing a random frame that we extracted features from (original and the extracted features image) and a mel spectrogram image of the voice
         '''
+<<<<<<< Updated upstream
         d = {}
 
         # randomly select 30 frames from video to enroll
@@ -113,8 +114,13 @@ class UserEnrollment:
         # extract features from voice and enroll that
         mel_spectrogram = self.enrollVoice(name, audio)
         d['audio_melspectrogram'] = mel_spectrogram
+=======
+        # TODO:
+>>>>>>> Stashed changes
 
-        return d
+        T = ()
+
+        return T
 
     def enrollVoice(self, name, audio : np.ndarray):
         '''
@@ -149,10 +155,12 @@ class UserEnrollment:
 
         return mel_spectrogram
 
-    def enroll(self, name : str, image : np.ndarray) -> dict:
+    def enroll(self, name : str, image : np.ndarray) -> np.ndarray:
         '''
         Given the captured image and name, enroll this user into the database by saving
         their name, image, and extracted features
+
+        Returns the SIFt'ed image
         '''
         # 1. create dir for this person if not exist
         name = replace_illegal_chars(name).lower().replace(' ', '_')
@@ -184,14 +192,14 @@ class UserEnrollment:
         self.pickler.save_to(f"{featuresSavePath}/{num+1}.pkl", T)
 
         # return sift image if face found
-        return_dict = {}
+        ret_img = None
         if sift_test_keypoints is None and sift_test_descriptors is None:
             # face not detected, return original image 
-            _, ret_image = cv2.imencode('.png', image)
-            return_dict['SIFT_image'] = ret_image  
+            _, orig_img = cv2.imencode('.png', image)
+            ret_img = orig_img
         else:
             # store test image with SIFT keypoints superimposed to send to frontend
             test_img_kp = cv2.drawKeypoints(extracted_face_image, sift_test_keypoints, None)
             _, test_img_kp_bytes = cv2.imencode('.png', test_img_kp)
-            return_dict['SIFT_image'] = test_img_kp_bytes
-        return return_dict
+            ret_img = test_img_kp_bytes
+        return ret_img

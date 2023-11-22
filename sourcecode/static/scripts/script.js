@@ -255,7 +255,7 @@ document.getElementById('enrollmentStopHybridRecording').addEventListener('click
 // try sending both a video stream and an audio stream
 
 // start recording
- function enrollmentHybridStartRecording() {
+function enrollmentHybridStartRecording() {
     if (!stream) {
         console.error('No video stream up and running');
         return;
@@ -327,11 +327,29 @@ function enrollmentHybridStopRecording() {
             body: formData
         })
         .then(response => response.json())
-        .then(data => {
-            var textNode = document.createTextNode(data.message);
-            enrollmentHybridDisplay.appendChild(textNode);
-            enrollmentHybridDisplay.appendChild(br);
-            enrollmentHybridVideoDisplayElements.push(textNode);
+        .then(imagesBase64 => {
+            // order of images received is [random orig frame, extracted feature frame, mel spectrogram of voice]
+            let imgs = [];
+            imagesBase64.forEach(base64 => {
+                let img = document.createElement('img');
+                img.src = 'data:image/jpeg;base64,' + base64;
+                imgs.push(img);
+            })
+
+            // add them to the screen
+            document.getElementById('enrollmentHybrid_img1_display').appendChild(imgs[0]);
+            document.getElementById('enrollmentHybrid_img1_display').appendChild(br);
+            enrollmentHybridVideoDisplayElements.push(imgs[0]);
+            enrollmentHybridVideoDisplayElements.push(br);
+
+            document.getElementById('enrollmentHybrid_img2_display').appendChild(imgs[1]);
+            document.getElementById('enrollmentHybrid_img2_display').appendChild(br);
+            enrollmentHybridVideoDisplayElements.push(imgs[1]);
+            enrollmentHybridVideoDisplayElements.push(br);
+
+            document.getElementById('enrollmentHybrid_img3_display').appendChild(imgs[2]);
+            document.getElementById('enrollmentHybrid_img3_display').appendChild(br);
+            enrollmentHybridVideoDisplayElements.push(imgs[2]);
             enrollmentHybridVideoDisplayElements.push(br);
         });
     });

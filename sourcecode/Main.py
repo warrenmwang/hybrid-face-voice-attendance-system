@@ -7,6 +7,12 @@ from Attendance import AttendanceSystem
 import os
 from pydub import AudioSegment
 from Pickling import PickleHelper
+import base64
+
+def ndarray_to_base64(image : np.ndarray) -> str:
+    '''encode an image (in numpy ndarray format) into a b64 string'''
+    raw_bytes = BytesIO(image.tobytes())
+    return base64.b64encode(raw_bytes.read()).decode()
 
 system = AttendanceSystem()
 
@@ -26,8 +32,9 @@ def upload():
     image = cv2.imdecode(np.frombuffer(uploaded_image.read(), np.uint8), cv2.IMREAD_COLOR)
 
     # enroll user, extract features, then send the extracted features to the screen (for now just show SIFT?)
-    d = system.enroll(username, image)
-    SIFT_img_with_keypoints = BytesIO(d['SIFT_image'].tobytes())
+    # returns the image as a np.ndarray
+    img = system.enroll(username, image)
+    SIFT_img_with_keypoints = BytesIO(img.tobytes())
 
     return send_file(SIFT_img_with_keypoints, mimetype='image/png')
 
@@ -56,19 +63,15 @@ def uploadHybrid():
     
     os.remove("temp.webm")
 
-    # TODO: return the [random orig frame, extracted feature frame, mel spectrogram of voice]
-    d = system.hybridEnroll(username, video_frames, audio_samples)
+    # TODO: return the [random orig frame, extracted feature frame, mel spectrogram of voice] (tuple)
+    T = system.hybridEnroll(username, video_frames, audio_samples)
+    # assume all images are numpy arrays.
+    # convert images into base64 encoded strings to jsonify and then send to frontend
+    face_img = ndarray_to_base64(T[0])
+    features_extracted_img = ndarray_to_base64(T[1])
+    audio_mel_spectrogram_img = ndarray_to_base64(T[2])
 
-    print(f"INFO: {d=}")
-    # print(f"{video_frames.shape=}")
-    # print(f"{audio_samples=}")
-    # print('username', username)
-
-    # pickler = PickleHelper()
-    # pickler.save_to('video.pkl', video_frames)
-    # pickler.save_to('audio.pkl', audio_samples)
-
-    return jsonify({'message': 'New video+audio enrolled.'}), 200
+    return jsonify([face_img, features_extracted_img, audio_mel_spectrogram_img]), 200
 
 @app.route('/attendance', methods=['POST'])
 def attendance():
@@ -134,7 +137,7 @@ def automated_attendance_testing_start():
     scoreThreshold_VGG16 = float(request.form.get('scoreThreshold_VGG16'))
     groundTruth = request.form.get('groundTruth')
     numItersPerMethod = int(request.form.get('numItersPerMethod'))
-    # print(f"INFO: Starting Automated Attendance Testing with params: {scoreThreshold=} {groundTruth=}")
+    print(f"INFO: Starting Automated Attendance Testing with params: {scoreThreshold=} {groundTruth=}")
     system.automatedAttendanceTestingStart(scoreThreshold_SIFT, scoreThreshold_CNN, scoreThreshold_VGG16, groundTruth, numItersPerMethod)
     return jsonify({'message': None}), 200
 
@@ -146,7 +149,6 @@ def automated_attendance_testing_process():
     image = request.files['image']
     image = cv2.imdecode(np.frombuffer(image.read(), np.uint8), cv2.IMREAD_COLOR)
     featureExtractionMethod = request.form.get('featureExtractionMethod')
-    # print(image, featureExtractionMethod)
     name, raw_score, scoreThreshold = system.automatedAttendanceTestingProcess(image, featureExtractionMethod)
     return jsonify({'name': name,
                     'raw_score': raw_score, 
