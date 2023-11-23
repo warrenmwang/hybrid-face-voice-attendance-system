@@ -287,12 +287,12 @@ class AttendanceSystem:
         '''
         return self.user_enrollment.hybridEnroll(name, video, audio)
 
-    def enroll(self, name, picture) -> np.ndarray:
+    def enrollImage(self, name, picture) -> np.ndarray:
         '''
         regular enrollment uses just a picture of the user to enroll
         returns the image with the face detected and SIFT keypoints marked
         '''
-        return self.user_enrollment.enroll(name, picture)
+        return self.user_enrollment.enrollImage(name, picture)
 
     def recordAttendance(self, image : np.ndarray, featureExtractionMethod : str, scoreThreshold : float) -> str:
         return self.attendance_recording.record(self.attendance_file, image, featureExtractionMethod, scoreThreshold)

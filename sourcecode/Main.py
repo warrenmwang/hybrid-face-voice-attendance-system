@@ -28,12 +28,12 @@ def upload():
     uploaded_image = request.files['image']
     username = request.form.get('text')
 
-    # Read the image using OpenCV
+    # Read the image using OpenCV, color format is BGR
     image = cv2.imdecode(np.frombuffer(uploaded_image.read(), np.uint8), cv2.IMREAD_COLOR)
 
     # enroll user, extract features, then send the extracted features to the screen (for now just show SIFT?)
     # returns the image as a np.ndarray
-    img = system.enroll(username, image)
+    img = system.enrollImage(username, image)
     SIFT_img_with_keypoints = BytesIO(img.tobytes())
 
     return send_file(SIFT_img_with_keypoints, mimetype='image/png')
@@ -53,9 +53,8 @@ def uploadHybrid():
         ret, frame = video.read()
         if not ret:
             break
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # convert opencv's BGR to RGB format
         frames.append(frame)
-    video_frames = np.array(frames)
+    video_frames = np.array(frames) # color format should be BGR bc using cv2
     
     # read the audio into a numpy array
     audio = AudioSegment.from_file("temp.webm", format="webm")
