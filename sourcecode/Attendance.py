@@ -177,14 +177,14 @@ class AutomatedAttendanceTesting(AttendanceRecording):
     def __init__(self, databasePath : str):
         super().__init__(databasePath)
 
-    def start(self, scoreThreshold_SIFT : float, scoreThreshold_CNN : float, scoreThreshold_VGG16 : float, groundTruth : str, numItersPerMethod : int) -> None:
+    def start(self, scoreThreshold_SIFT : float, scoreThreshold_CNN : float, scoreThreshold_VGG : float, groundTruth : str, numItersPerMethod : int) -> None:
         '''Clears any past variables and restarts a new session with new inputs'''
         self.scoreThreshold_SIFT = scoreThreshold_SIFT
         self.scoreThreshold_CNN = scoreThreshold_CNN
-        self.scoreThreshold_VGG16 = scoreThreshold_VGG16
+        self.scoreThreshold_VGG = scoreThreshold_VGG
         self.groundTruth = groundTruth
         self.numItersPerMethod = numItersPerMethod
-        self.featureExtractionMethods = ['SIFT', 'CNN', 'VGG16']
+        self.featureExtractionMethods = ['SIFT', 'CNN', 'VGG']
         # self.countsPassThreshold = {k:0 for k in self.featureExtractionMethods}
         self.counts_correct = {k:0 for k in self.featureExtractionMethods}
         self.counts_incorrect = {k:0 for k in self.featureExtractionMethods}
@@ -203,9 +203,9 @@ class AutomatedAttendanceTesting(AttendanceRecording):
         elif featureExtractionMethod == "CNN":
             scores = self.getScoresViaCNN(image)
             scoreThreshold = self.scoreThreshold_CNN
-        elif featureExtractionMethod == "VGG16":
+        elif featureExtractionMethod == "VGG":
             scores = self.getScoresViaPretrainedModel(image)
-            scoreThreshold = self.scoreThreshold_VGG16
+            scoreThreshold = self.scoreThreshold_VGG
         else:
             print('ERROR: Unknown feature extraction method.')
             return
@@ -245,23 +245,27 @@ class AutomatedAttendanceTesting(AttendanceRecording):
             # can't do TRR with current setup unless add another button to toggle a different mode of testing where subject in image is NOT the ground truth (extra) (reject if below threshold and ground truth is not equal to result)
             CountsTillCorrect = [(method, counts) for method, counts in self.numberIterationsTillCorrectCount.items()]
             
+            # chars for formatting
+            # tab_char = '&#x09;'
+            tab_char = '    '
+
             ret_str = ""
             ret_str += "<h3>Number of Takes till Correct Match:</h3>"
             ret_str += "<p>If count is equal to the number of iterations to run for each method, then never matched within given number of iterations.</p>"
             for m, c in CountsTillCorrect:
-                ret_str += f"{m}: {c}<br>"
+                ret_str += f"{tab_char}{m}: {c}<br>"
 
             ret_str += "<h3>TARS:</h3>"
             for m,p in TARs:
-                ret_str += f"{m}: {p}<br>"
+                ret_str += f"{tab_char}{m}: {p}<br>"
 
             ret_str += "<h3>FARs:</h3>"
             for m,p in FARs:
-                ret_str += f"{m}: {p}<br>"
+                ret_str += f"{tab_char}{m}: {p}<br>"
 
             ret_str += "<h3>FRRs:</h3>"
             for m,p in FRRs:
-                ret_str += f"{m}: {p}<br>"
+                ret_str += f"{tab_char}{m}: {p}<br>"
 
             return ret_str
         except Exception as e:
@@ -312,8 +316,8 @@ class AttendanceSystem:
     def reExtractAllImages(self) -> str:
         return self.user_enrollment.reEnrollDatabase()
 
-    def automatedAttendanceTestingStart(self, scoreThreshold_SIFT : float, scoreThreshold_CNN : float, scoreThreshold_VGG16 : float, groundTruth : str, numItersPerMethod : int) -> None:
-        self.automated_attendance_testing.start(scoreThreshold_SIFT, scoreThreshold_CNN, scoreThreshold_VGG16, groundTruth, numItersPerMethod)
+    def automatedAttendanceTestingStart(self, scoreThreshold_SIFT : float, scoreThreshold_CNN : float, scoreThreshold_VGG : float, groundTruth : str, numItersPerMethod : int) -> None:
+        self.automated_attendance_testing.start(scoreThreshold_SIFT, scoreThreshold_CNN, scoreThreshold_VGG, groundTruth, numItersPerMethod)
     
     def automatedAttendanceTestingProcess(self, image : np.ndarray, featureExtractionMethod : str) -> tuple[str, float, float]:
         return self.automated_attendance_testing.process(image, featureExtractionMethod)

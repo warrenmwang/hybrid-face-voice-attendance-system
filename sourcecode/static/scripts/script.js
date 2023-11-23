@@ -62,14 +62,17 @@ function transitionScreens(hideId, showId) {
     var hideScreen = document.getElementById(hideId);
     var showScreen = document.getElementById(showId);
 
+    let hideDelay = 50; // starts hiding immediately, completely hidden by this delay
+    let showDelay = 50; // delay after completely hidden finish
+
     hideScreen.classList.add('hidden');
     setTimeout(function() {
         hideScreen.style.display = 'none';
         showScreen.style.display = 'block';
         setTimeout(function() {
             showScreen.classList.remove('hidden');
-        }, 50);
-    }, 1000);
+        }, showDelay);
+    }, hideDelay);
 }
 
 // acts like time.sleep(ms) in python
@@ -78,7 +81,7 @@ function delay(ms) {
 }
 // ------------------------------------ Shared functions ------------------------------------
 
-// MAIN MENU
+// ------------------------------------ MAIN MENU ------------------------------------
 var stream; // keep track of a continuous video stream for enroll/attendance, need reference to close when returning to main menu
 
 // from main menu to another screen
@@ -89,6 +92,10 @@ document.getElementById('goToEnrollmentScreen').addEventListener('click', functi
 document.getElementById('goToRecordAttendanceScreen').addEventListener('click', function() {
     transitionScreens('main_screen', 'record_attendance_screen');
     startContinuousVideoStream('attendanceVideo');
+});
+document.getElementById('goToBenchmarkingScreen').addEventListener('click', function() {
+    transitionScreens('main_screen', 'benchmarking_screen');
+    startContinuousVideoStream('benchmarkingVideo');
 });
 document.getElementById('goToPlotAttendanceScreen').addEventListener('click', function() {
     transitionScreens('main_screen', 'plot_attendance_screen');
@@ -106,14 +113,18 @@ document.getElementById('goToMainMenuFromRecordAttendance').addEventListener('cl
     transitionScreens('record_attendance_screen', 'main_screen');
     stopContinuousVideoStream();
 });
+document.getElementById('goToMainMenuFromBenchmarking').addEventListener('click', function() {
+    transitionScreens('benchmarking_screen', 'main_screen');
+    stopContinuousVideoStream();
+});
 document.getElementById('goToMainMenuFromPlotAttendance').addEventListener('click', function() {
     transitionScreens('plot_attendance_screen', 'main_screen');
 });
 document.getElementById('goToMainMenuFromAdmin').addEventListener('click', function() {
     transitionScreens('admin_screen', 'main_screen');
-})
+});
 
-// ---------------------------- ENROLLMENT ----------------------------
+// ------------------------------------ ENROLLMENT ------------------------------------
 let enrollmentAddedImageElements = [];
 
 document.getElementById('enrollmentClearDisplayedPictures').addEventListener('click', function() {
@@ -364,33 +375,12 @@ function enrollmentHybridStopRecording() {
 }
 
 
-// RECORD ATTENDANCE
-let featureExtractors = ['SIFT', 'CNN', 'VGG16'];
+// ------------------------------------ RECORD ATTENDANCE ------------------------------------
 let takingAttendanceFlag = false;
 let attendanceMarkedPresentElements = [];
-let attendanceAutomatedTestingElements = [];
-let attendanceAutomatedTestingFinalResultElements = [];
-
 document.getElementById('clearAttendanceMarkedPresentField').addEventListener('click', function () {
     removeAddedElementsFromList(attendanceMarkedPresentElements);
 });
-
-function addThreeColumnRowToTable(table, trackList, col1, col2, col3) {
-    // adds a row with the contents col1, col2, col3 into the given table
-    // also adds the new row into the trackList to keep a reference to delete the row later
-    var row = document.createElement('tr');
-    var cell1 = document.createElement('td');
-    var cell2 = document.createElement('td');
-    var cell3 = document.createElement('td');
-    cell1.innerHTML = col1;
-    cell2.innerHTML = col2;
-    cell3.innerHTML = col3;
-    row.appendChild(cell1);
-    row.appendChild(cell2);
-    row.appendChild(cell3);
-    table.appendChild(row);
-    trackList.push(row);
-}
 
 var intervalId;
 document.getElementById('startTakingAttendance').addEventListener('click', function() {
@@ -474,11 +464,34 @@ document.getElementById('resetTakingAttendance').addEventListener('click', funct
     });
 })
 
+
+// ------------------------------------ BENCHMARKING ------------------------------------
+let featureExtractors = ['SIFT', 'CNN', 'VGG'];
+let attendanceAutomatedTestingElements = [];
+let attendanceAutomatedTestingFinalResultElements = [];
+
+function addThreeColumnRowToTable(table, trackList, col1, col2, col3) {
+    // adds a row with the contents col1, col2, col3 into the given table
+    // also adds the new row into the trackList to keep a reference to delete the row later
+    var row = document.createElement('tr');
+    var cell1 = document.createElement('td');
+    var cell2 = document.createElement('td');
+    var cell3 = document.createElement('td');
+    cell1.innerHTML = col1;
+    cell2.innerHTML = col2;
+    cell3.innerHTML = col3;
+    row.appendChild(cell1);
+    row.appendChild(cell2);
+    row.appendChild(cell3);
+    table.appendChild(row);
+    trackList.push(row);
+}
+
 document.getElementById('automatedAttendanceTestingStart').addEventListener('click', async function() {
     var automatedAttendanceTestingDisplayField = document.getElementById('automatedAttendanceTestingDisplayField');
     var processResultsTable = document.getElementById('automatedAttendanceTestingDisplayField');
     var br = document.createElement('br');
-    var video = document.getElementById('attendanceVideo');
+    var video = document.getElementById('benchmarkingVideo');
     var delayTime = 100; // in milliseconds delay for each iteration of taking pictures and processing
 
     // get number of iterations per method to run and the ground truth name of person being run against
@@ -486,19 +499,19 @@ document.getElementById('automatedAttendanceTestingStart').addEventListener('cli
     var groundTruthInputField = document.getElementById('automatedAttendanceTestingGroundTruth');
     var scoreThresholdInputField_SIFT = document.getElementById('automatedAttendanceTestingScoreThresholdInput_SIFT');
     var scoreThresholdInputField_CNN = document.getElementById('automatedAttendanceTestingScoreThresholdInput_CNN');
-    var scoreThresholdInputField_VGG16 = document.getElementById('automatedAttendanceTestingScoreThresholdInput_VGG16');
+    var scoreThresholdInputField_VGG = document.getElementById('automatedAttendanceTestingScoreThresholdInput_VGG');
     
     var numItersPerMethod = numItersInputField.value;
     var groundTruth = groundTruthInputField.value;
     var scoreThreshold_SIFT = scoreThresholdInputField_SIFT.value;
     var scoreThreshold_CNN = scoreThresholdInputField_CNN.value;
-    var scoreThreshold_VGG16 = scoreThresholdInputField_VGG16.value;
+    var scoreThreshold_VGG = scoreThresholdInputField_VGG.value;
 
     // ping backend to start recording of automated test
     var formData = new FormData();
     formData.append('scoreThreshold_SIFT', scoreThreshold_SIFT);
     formData.append('scoreThreshold_CNN', scoreThreshold_CNN);
-    formData.append('scoreThreshold_VGG16', scoreThreshold_VGG16);
+    formData.append('scoreThreshold_VGG', scoreThreshold_VGG);
     formData.append('groundTruth', groundTruth);
     formData.append('numItersPerMethod', numItersPerMethod);
     fetch('/automated_attendance_testing/start', {
@@ -562,7 +575,7 @@ document.getElementById('automatedAttendanceTestingClearDisplay').addEventListen
     removeAddedElementsFromList(attendanceAutomatedTestingElements);
 });
 
-// PLOT ATTENDANCE
+// ------------------------------------ PLOT ATTENDANCE ------------------------------------
 let plotAttendanceAddedImageElements = [];
 
 document.getElementById('createAttendanceHistogram').addEventListener('click', function() {

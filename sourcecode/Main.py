@@ -133,11 +133,11 @@ def automated_attendance_testing_start():
     '''
     scoreThreshold_SIFT = float(request.form.get('scoreThreshold_SIFT'))
     scoreThreshold_CNN = float(request.form.get('scoreThreshold_CNN'))
-    scoreThreshold_VGG16 = float(request.form.get('scoreThreshold_VGG16'))
+    scoreThreshold_VGG = float(request.form.get('scoreThreshold_VGG'))
     groundTruth = request.form.get('groundTruth')
     numItersPerMethod = int(request.form.get('numItersPerMethod'))
-    print(f"INFO: Starting Automated Attendance Testing with params: {scoreThreshold=} {groundTruth=}")
-    system.automatedAttendanceTestingStart(scoreThreshold_SIFT, scoreThreshold_CNN, scoreThreshold_VGG16, groundTruth, numItersPerMethod)
+    print(f"INFO: Starting Automated Attendance Testing with params: {scoreThreshold_CNN=} {scoreThreshold_SIFT=} {scoreThreshold_VGG=} {groundTruth=}")
+    system.automatedAttendanceTestingStart(scoreThreshold_SIFT, scoreThreshold_CNN, scoreThreshold_VGG, groundTruth, numItersPerMethod)
     return jsonify({'message': None}), 200
 
 @app.route('/automated_attendance_testing/process', methods=['POST'])
