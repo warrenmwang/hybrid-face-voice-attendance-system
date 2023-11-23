@@ -26,13 +26,12 @@ class SpeakerRecognition:
         This function saves a numpy ndarray representation of an audio file.
         
         Inputs:
-        audio (np.ndarray): The numpy ndarray representation of the audio file.
-        filename (str): The name of the audio file to be saved.
+            audio (np.ndarray): The numpy ndarray representation of the audio file.
+                if using wave module, note that sound should be as dtype int32
+            filename (str): The name of the audio file to be saved.
         '''
-        #TODO: why does the saved recording sound like 10 octaves lower than my voice and slowed down? sample rate ? 
-        soundfile.write(filename, audio, SAMPLE_RATE)
-        print(f"{SAMPLE_RATE=}")
-
+        # FIXME: fuck it let's ball -- use double the sample_rate bc that is what is working experimentally, but idk why.
+        soundfile.write(filename, audio, SAMPLE_RATE*2)
 
     def create_melspectrogram(self, audio_sample : np.ndarray) -> np.ndarray:
         '''
@@ -52,6 +51,9 @@ class SpeakerRecognition:
     def convertAudioToImageRepresentation(self, audio : np.ndarray) -> (np.ndarray, np.ndarray):
         '''
         create spectrogram and convert it into an RGB image
+
+        Inputs:
+            audio (np.ndarray): one dimensional (mono) array of ints
 
         return spectrogram and image
         - spectrogram is a numpy array

@@ -76,7 +76,7 @@ class AttendanceRecording:
         similarity scores (range [0, 1])
         (name, image, sift_save_object, cnn_save_object, pretrained_save_object)
         '''
-        _, test_descriptors, _ = self.SIFT.process_face(test_image)
+        _, test_descriptors, _ = self.SIFT.process(test_image)
         scores = [] 
         for person in os.listdir(self.faceDatabasePath):
             for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
@@ -100,7 +100,7 @@ class AttendanceRecording:
         (name, image, sift_save_object, cnn_save_object, pretrained_save_object)
         '''
         scores = []
-        test_image_embeddings = self.CNN.process_face(test_image)
+        test_image_embeddings = self.CNN.process(test_image)
         for person in os.listdir(self.faceDatabasePath):
             for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
                 picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
@@ -119,7 +119,7 @@ class AttendanceRecording:
         (name, image, sift_save_object, cnn_save_object, pretrained_save_object)
         '''
         scores = []
-        test_image_embeddings = self.PretrainedModel.process_face(test_image)
+        test_image_embeddings = self.PretrainedModel.process(test_image)
         for person in os.listdir(self.faceDatabasePath):
             for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
                 picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"

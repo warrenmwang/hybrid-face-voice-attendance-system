@@ -5,8 +5,10 @@ import re
 from Pickling import PickleHelper
 import numpy as np
 from SpeakerRecognition import SpeakerRecognition
+import copy
 
 def countFilesInDir(dir : str) -> int:
+    # NOTE: running this over and over, with a large db, will be slow O(n). but since my db is smol, doesn't matter.
     # counts the number of files in a dir
     count = 0
     for path in os.scandir(dir):
@@ -47,25 +49,46 @@ class UserEnrollment:
         this function allows us to recompute new extracted features based off of enroll's functionality
         and replace all of the old features in the db
         '''
-        # TODO: add voice reenrollment!
-
+        # images (face)
         # clear all .pkl files from db
         delete_pkl_files(self.faceImageOutputPath)
-        
         for personName in os.listdir(self.faceImageOutputPath):
             for imageName in os.listdir(f"{self.faceImageOutputPath}/{personName}/images"):
+                # get image
                 imagePath = f"{self.faceImageOutputPath}/{personName}/images/{imageName}"
                 image = cv2.imread(imagePath)
 
+                # extract features
                 features = self.extractFeaturesFromImage(image)
                 _, sift_test_descriptors, _ = features['SIFT'][0], features['SIFT'][1], features['SIFT'][2]
                 cnn_embeddings = features['CNN']
                 vgg_embeddings = features['VGG']
 
-                num = countFilesInDir(f"{self.faceImageOutputPath}/{personName}/features")
+                # save features
                 featuresSavePath = f"{self.faceImageOutputPath}/{personName}/features"
+                num = countFilesInDir(featuresSavePath)
                 T = (personName, image, sift_test_descriptors, cnn_embeddings, vgg_embeddings)
                 self.pickler.save_to(f"{featuresSavePath}/{num+1}.pkl", T)
+        
+        # audio (voice)
+        # clear all .pkl files from db
+        delete_pkl_files(self.audioOutputPath)
+        for personName in os.listdir(self.audioOutputPath):
+            for audioName in os.listdir(f"{self.audioOutputPath}/{personName}/audio"):
+                # get audio
+                audioPath = f"{self.audioOutputPath}/{personName}/audio/{audioName}"
+                audio = self.speakerRecognition.readAudioFileIntoNpNdArray(audioPath)
+
+                # extract features
+                _, mel_spectrogram_img = self.speakerRecognition.convertAudioToImageRepresentation(audio)
+                embeddings = self.PretrainedModel.process(mel_spectrogram_img)
+
+                # save features
+                featuresSavePath = f"{self.audioOutputPath}/{personName}/features"
+                num = countFilesInDir(featuresSavePath)
+                filename = f"{personName}-{num+1}"
+                T = (personName, embeddings)
+                self.pickler.save_to(f"{featuresSavePath}/{filename}.pkl", T)
         
         return 'Done'
 
@@ -143,6 +166,11 @@ class UserEnrollment:
             os.makedirs(audioSavePath)
         if not os.path.exists(featuresSavePath):
             os.makedirs(featuresSavePath)
+        
+        # data processing: convert into float64 dtype and normalize values into [-1.0,1.0]
+        audio = audio.astype(float) # defaults to float64
+        audio = audio / np.max(np.abs(audio))
+        print(f"DEBUG: {audio.min()=} {audio.max()=}")
 
         # save original audio
         num = countFilesInDir(audioSavePath) # get number of current images

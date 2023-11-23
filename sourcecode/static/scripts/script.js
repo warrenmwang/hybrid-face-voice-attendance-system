@@ -26,7 +26,13 @@ function startContinuousVideoStream(divId, audioToggle = false) {
         if(audioToggle){
             // with audio
             video.muted = true; // to prevent the audio from playing back when the video is on, audio will still be recorded
-            navigator.mediaDevices.getUserMedia({ video: true , audio: { sampleRate: 48000 }}).then(function(mediaStream) {
+            navigator.mediaDevices.getUserMedia({
+                    video: true , 
+                    audio: { 
+                        sampleRate: 48000,
+                        chanenlCount: 1 // mono
+                    }
+            }).then(function(mediaStream) {
                 stream = mediaStream;
                 video.srcObject = stream;
                 video.play();
