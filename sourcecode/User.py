@@ -111,7 +111,7 @@ class UserEnrollment:
             'VGG': pretrained_model_embeddings
         }
 
-    def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
+    def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         '''
         Given the captured video stream, voice recording, and name, enroll this user into the database
         by extracting features for both video (some select images from the video and from the audio)

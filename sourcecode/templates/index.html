@@ -14,7 +14,7 @@
 
     <!-- MAIN MENU -->
     <div id="main_screen" class="screen">
-        <h2 class="display-3" style="text-align:center;">Main Menu Options:</h2>
+        <h2 class="display-3" style="text-align:center;">Main Menu</h2>
         <br>
         <center>
             <div style="width:30%;">
@@ -84,7 +84,7 @@
         </div>
     
         <div style="text-align:left;margin:0.5%;">
-            <h2>Captured Images and Landmarks Detected by SIFT for Demonstration Purposes</h2><br>
+            <h2 class="display-4" style="text-align:center;">Captured Images and SIFT Landmarks</h2><br>
             <button id="enrollmentClearDisplayedPictures" type="button" class="btn btn-info btn-lg">Clear all Displayed Pictures</button><br>
             <hr class="border border-secondary opacity-75">
             <table style="width:100%">
@@ -100,14 +100,17 @@
         </div>
     </div>
 
-    <!-- RECORD ATTENDANCE-->
+    <!-- RECORD ATTENDANCE (VIDEO) -->
     <div id="record_attendance_screen" class="screen" style="display: none;">
         <h2 class="display-3" style="text-align:center;">Record Student Attendance</h2>
         <hr class="border border-secondary opacity-75">
-        <table>
-            <tr>
-                <th style="text-align:left;padding-right:100px;">
-                    <button id="goToMainMenuFromRecordAttendance" type="button" class="btn btn-primary btn-lg">Main Menu</button><br>
+        <button id="goToMainMenuFromRecordAttendance" type="button" class="btn btn-primary btn-lg">Main Menu</button><br>
+        <table style="width:100%">
+            <th style="text-align:left;padding-left:10px;width:65%;">
+                <!-- face only (shows by default) -->
+                <div id="record_attendance_face_only_screen" class="screen" style="width:100%;">
+                    <h4 class="display-5">Face Only</h3>
+                    <button id="goToHybridAttenanceFromFaceOnly" type="button" class="btn btn-secondary btn-lg">Hybrid Attendance</button>
                     <br>
                     <form id="myForm">
                         <h5>Please select the feature extracton method:</h5>
@@ -131,24 +134,48 @@
                     <h3>Found present in video:</h3>
                     <button id="clearAttendanceMarkedPresentField" type="button" class="btn btn-info">Clear</button>
                     <hr class="border border-secondary opacity-75">
-                </th>
-                <th style="text-align:center;">
-                    <video id="attendanceVideo" width="640" height="480" autoplay></video><br>
-                </th>
-            </tr>
-            <tr>
-                <th style="padding-right:100px;vertical-align:top;">
-                    <table style="width:100%" id="attendanceMarkedPresentField">
-                    <tr>
-                        <th>Name</th>
-                        <th>Raw Similarity Score</th>
-                        <th>Score Threshold</th>
-                    </tr>
+
+                    <table id="attendanceMarkedPresentField" style="width:100%;">
+                        <tr>
+                            <th>Name</th>
+                            <th>Raw Similarity Score</th>
+                            <th>Score Threshold</th>
+                        </tr>
                     </table>
-                </th>
-            </tr>
+                </div>
+
+                <!-- hybrid -->
+                <div id="record_attendance_hybrid_screen" class="screen" style="display: none;">
+                    <h4 class="display-5">Hybrid (Face + Voice)</h3>
+                    <button id="goToFaceOnlyAttenanceFromHybrid" type="button" class="btn btn-secondary btn-lg">Face Only Attendance</button>
+                    <br>
+                    <!-- TODO: -->
+
+                    <p>Please say the phrase "The quick brown fox jumps over the lazy dog"</p>
+                    <button id="hybridAttendanceStartRecording" type="button" class="btn btn-secondary btn-lg">Start</button>
+                    <button id="hybridAttendanceStopRecording" type="button" class="btn btn-secondary btn-lg">Stop</button><br><br>
+                    <div id="hybridAttendanceDisplay"></div> <!-- where the recorded video gets displayed -->
+                    <button id="clearHybridAttendanceDisplay" type="button" class="btn btn-info">Clear Captured Video</button>
+                    <button id="resetTakingHybridAttendance" type="button" class="btn btn-info">Reset Current Attendance</button><br>
+
+                    <h3>Found present in video:</h3>
+                    <button id="clearHybridAttendanceMarkedPresentField" type="button" class="btn btn-info">Clear</button>
+                    <hr class="border border-secondary opacity-75">
+                    <table id="hybridAttendanceMarkedPresentField" style="width:100%;">
+                        <tr>
+                            <th>Name</th>
+                            <th>Raw Similarity Score</th>
+                            <th>Score Threshold</th>
+                        </tr>
+                    </table>
+ 
+                </div>
+            </th>
+            <th style="text-align:right;width:35%">
+                <video id="attendanceVideo" width="640" height="480" autoplay></video><br>
+            </th>
         </table>
-   </div>
+    </div>
 
    <!-- BENCHMARKING -->
     <div id="benchmarking_screen" class="screen" style="display: none;">

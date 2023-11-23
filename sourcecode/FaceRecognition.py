@@ -145,7 +145,7 @@ class PretrainedModel:
         embeddings = self.model.predict(img)
         return embeddings
 
-    def compute_similarity_for_attendance(self, db_embeddings, test_image_embeddings) ->float:
+    def compute_similarity_for_attendance(self, db_embeddings, test_image_embeddings) -> float:
         '''
         given the database image embedding and test image embedding, compute similarity between them
         '''

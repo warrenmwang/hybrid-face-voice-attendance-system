@@ -48,7 +48,7 @@ class SpeakerRecognition:
         S_dB = librosa.power_to_db(S, ref=np.max)
         return S_dB
     
-    def convertAudioToImageRepresentation(self, audio : np.ndarray) -> (np.ndarray, np.ndarray):
+    def convertAudioToImageRepresentation(self, audio : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         '''
         create spectrogram and convert it into an RGB image
 

@@ -91,7 +91,7 @@ document.getElementById('goToEnrollmentScreen').addEventListener('click', functi
 });
 document.getElementById('goToRecordAttendanceScreen').addEventListener('click', function() {
     transitionScreens('main_screen', 'record_attendance_screen');
-    startContinuousVideoStream('attendanceVideo');
+    startContinuousVideoStream('attendanceVideo', true);
 });
 document.getElementById('goToBenchmarkingScreen').addEventListener('click', function() {
     transitionScreens('main_screen', 'benchmarking_screen');
@@ -122,6 +122,15 @@ document.getElementById('goToMainMenuFromPlotAttendance').addEventListener('clic
 });
 document.getElementById('goToMainMenuFromAdmin').addEventListener('click', function() {
     transitionScreens('admin_screen', 'main_screen');
+});
+
+// record attendance screen switching
+document.getElementById('goToFaceOnlyAttenanceFromHybrid').addEventListener('click', function() {
+    transitionScreens('record_attendance_hybrid_screen', 'record_attendance_face_only_screen');
+});
+
+document.getElementById('goToHybridAttenanceFromFaceOnly').addEventListener('click', function() {
+    transitionScreens('record_attendance_face_only_screen', 'record_attendance_hybrid_screen');
 });
 
 // ------------------------------------ ENROLLMENT ------------------------------------
@@ -257,7 +266,7 @@ document.getElementById('enrollmentImageUploadButton').addEventListener('click',
     });
 });
 
-let mediaRecorder;
+let mediaRecorder; // shared mediaRecorder used to record video+audio for enrollment & attendance
 let enrollmentRecordedChunks = [];
 let enrollmentHybridVideoDisplayElements = [];
 
@@ -464,6 +473,89 @@ document.getElementById('resetTakingAttendance').addEventListener('click', funct
     });
 })
 
+let hybridAttendanceMarkedPresentElements = [];
+let hybridAttendanceVideoDisplayElements = [];
+let hybridAttendanceRecordedChunks = [];
+
+document.getElementById('hybridAttendanceStartRecording').addEventListener('click', function() {
+    if (!stream) {
+        console.error('No video stream up and running');
+        return;
+    }
+
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.addEventListener('dataavailable', event => {
+        hybridAttendanceRecordedChunks.push(event.data);
+    })
+
+    mediaRecorder.start();
+});
+
+document.getElementById('hybridAttendanceStopRecording').addEventListener('click', function() {
+    mediaRecorder.addEventListener('stop', () => {
+        let hybridDisplay = document.getElementById('hybridAttendanceDisplay');
+        var br = document.createElement('br');
+        
+        // convert the recorded video+audio chunks into single blob
+        const recordedBlob = new Blob(hybridAttendanceRecordedChunks, { type: 'video/webm'});
+        hybridAttendanceRecordedChunks = []; // clear data buffer
+
+        // create video element to be displayed directly in html
+        const videoElement = document.createElement('video');
+
+        // Create a URL from the blob
+        const url = URL.createObjectURL(recordedBlob);
+
+        // Set the source of the video element to the URL
+        videoElement.src = url;
+
+        // Set the controls attribute so the user can control the video
+        videoElement.controls = true;
+
+        // display the captured video+audio
+        hybridDisplay.appendChild(videoElement);
+        hybridDisplay.appendChild(br);
+        hybridAttendanceVideoDisplayElements.push(videoElement);
+        hybridAttendanceVideoDisplayElements.push(br);
+
+        // put video in formdata to be sent to backend
+        var formData = new FormData();
+        formData.append('videoAndAudio', recordedBlob);
+
+        // send to backend
+        fetch('/attendanceHybrid', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.name) {
+                // show who was marked present if message is not Null
+                // expect (name, raw_score, score_threshold)
+                var table = document.getElementById('hybridAttendanceMarkedPresentField');
+                addThreeColumnRowToTable(table, hybridAttendanceMarkedPresentElements, data.name, data.raw_score, data.score_threshold);
+                console.log(`DEBUG: name:${data.name} raw_score:${data.raw_score} score_threshold:${data.score_threshold}`)
+            }
+        });
+    });
+
+    mediaRecorder.stop();
+});
+
+document.getElementById('clearHybridAttendanceMarkedPresentField').addEventListener('click', function() {
+    removeAddedElementsFromList(hybridAttendanceMarkedPresentElements);
+});
+
+document.getElementById('clearHybridAttendanceDisplay').addEventListener('click', function() {
+    removeAddedElementsFromList(hybridAttendanceVideoDisplayElements);
+});
+
+document.getElementById('resetTakingHybridAttendance').addEventListener('click', function() {
+    fetch('/reset_attendance', {
+        method: 'POST'
+    });
+})
 
 // ------------------------------------ BENCHMARKING ------------------------------------
 let featureExtractors = ['SIFT', 'CNN', 'VGG'];

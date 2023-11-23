@@ -84,10 +84,45 @@ def attendance():
     image = cv2.imdecode(np.frombuffer(image.read(), np.uint8), cv2.IMREAD_COLOR)
     featureExtractionMethod = request.form.get('featureExtractionMethod')
     scoreThreshold = float(request.form.get('scoreThreshold'))
-    name, raw_score = system.recordAttendance(image, featureExtractionMethod, scoreThreshold)
+    name, raw_score = system.recordAttendanceViaFace(image, featureExtractionMethod, scoreThreshold)
     return jsonify({'name': name,
                     'raw_score': raw_score, 
                     'score_threshold': scoreThreshold}), 200
+
+@app.route('/attendanceHybrid', methods=['POST'])
+def attendanceHybrid():
+    '''
+    hybrid attendance video+audio identification
+    '''
+    # get video, audio, username
+    videoAndAudio = request.files['videoAndAudio']
+    # username = request.form.get('text')
+
+    videoAndAudio.save('temp.webm')
+
+    # Use OpenCV to read the video frames into a numpy array
+    video = cv2.VideoCapture("temp.webm")
+    frames = []
+    while True:
+        ret, frame = video.read()
+        if not ret:
+            break
+        frames.append(frame)
+    video_frames = np.array(frames) # color format should be BGR bc using cv2
+    
+    # read the audio into a numpy array
+    audio = AudioSegment.from_file("temp.webm", format="webm")
+    audio_samples = np.array(audio.get_array_of_samples())
+    
+    os.remove("temp.webm")
+
+    scoreThreshold = 0.5 # TODO:
+    name, raw_score = system.recordAttenanceViaHybrid(video_frames, audio_samples, scoreThreshold)
+    print(f"DEBUG: {name=} {raw_score=}")
+    return jsonify({'name': name,
+                    'raw_score': raw_score, 
+                    'score_threshold': scoreThreshold}), 200
+
 
 @app.route('/reset_attendance', methods=['POST'])
 def reset_attendance():
