@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import os
 import cv2
 import soundfile
+import noisereduce as nr
 
-SAMPLE_RATE=48000
+SAMPLE_RATE=48000*2 # FIXME: fuck, why do i need a times 2 here it's supposed to be 48000:cry:
 
 class SpeakerRecognition:
     def readAudioFileIntoNpNdArray(self, filename:str)->np.ndarray:
@@ -18,8 +19,8 @@ class SpeakerRecognition:
         Returns:
         np.ndarray: A numpy ndarray representation of the audio file.
         '''
-        audio, _ = librosa.load(filename, sr=None)
-        return audio
+        audio, sr = librosa.load(filename, sr=None) 
+        return audio, sr
 
     def saveAudioNpNdArrayAsFile(self, audio:np.ndarray, filename:str):
         '''
@@ -30,8 +31,42 @@ class SpeakerRecognition:
                 if using wave module, note that sound should be as dtype int32
             filename (str): The name of the audio file to be saved.
         '''
-        # FIXME: fuck it let's ball -- use double the sample_rate bc that is what is working experimentally, but idk why.
-        soundfile.write(filename, audio, SAMPLE_RATE*2)
+        soundfile.write(filename, audio, SAMPLE_RATE)
+
+    def preprocessAudio(self, audio:np.ndarray, sr:int=SAMPLE_RATE) -> np.ndarray:
+        '''
+        Inputs:
+            audio (np.ndarray) - audio in float64 format
+            sr (int) - sample rate
+        Outputs:
+            cleaned_normalized_audio (np.ndarray)
+
+        Applies the following to the audio:
+        1. Noise Reduction via spectral gating (via. noisereduce lib)
+        2. Audio Normalization to -20 dBFS
+        '''
+        if str(audio.dtype) != "float64":
+            audio = audio.astype(float) # TODO: god i hope this will work ok...
+
+        # noise reduction
+        cleaned_audio = nr.reduce_noise(y=audio, sr=sr)
+
+        # normalization
+        target_loudness = -20.0 # dBFS
+
+        def normalize_audio(input_audio :np.ndarray , target_loudness : float):
+            def dBFS(signal):
+                # calculate loudness in dBFS
+                rms = np.sqrt(np.mean(signal**2))
+                return 20 * np.log10(rms)
+
+            current_loudness = dBFS(input_audio)
+            gain = target_loudness - current_loudness
+            output_audio = input_audio * (10**(gain / 20))
+            return output_audio
+
+        cleaned_normalized_audio = normalize_audio(cleaned_audio, target_loudness)
+        return cleaned_normalized_audio
 
     def create_melspectrogram(self, audio_sample : np.ndarray) -> np.ndarray:
         '''

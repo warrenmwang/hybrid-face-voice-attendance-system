@@ -36,8 +36,7 @@ class AttendanceRecording:
     def recordViaHybrid(self, attendance_file : str, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float]:
         '''
         Similar to recordViaFace, will try to identify a user's presence in the video, authenticates with voice+face.
-
-        TODO: For now, hybrid identification system is using a simply mean of the two individual match scores?
+        # TODO: do i want to redesign the scoring of this?
         '''
         # get scores for face
 
@@ -115,7 +114,7 @@ class AttendanceRecording:
         
         # check top score
         top_scorer = scores[0]
-        name, raw_score, _ = top_scorer[0], top_scorer[1], top_scorer[2]
+        name, raw_score = top_scorer[0], top_scorer[1]
         if raw_score > scoreThreshold:
             username = name
 
@@ -126,7 +125,7 @@ class AttendanceRecording:
             return username, raw_score
         return None, None
 
-    def getScoresViaSIFT(self, test_image : np.ndarray):
+    def getScoresViaSIFT(self, test_image : np.ndarray) -> list[tuple[str, float]]:
         '''
         Get scores via SIFT method
 
@@ -139,18 +138,16 @@ class AttendanceRecording:
             for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
                 picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
                 T = self.pickler.load_back(picklePath) 
-                # name, db_image, db_test_descriptors = T[0], T[1], T[2]
-                name, db_test_descriptors = T[0], T[2]
+                name, db_test_descriptors = T[0], T[1]
                 # images that SIFT failed to grab the features will be of Nonetype, skip those by setting score to 0
                 if type(db_test_descriptors) == type(None):
                     score = 0
                 else:
                     score = self.SIFT.match_faces(test_descriptors, db_test_descriptors)
-                # scores.append((name, score, db_image))
                 scores.append((name, score))
         return scores
 
-    def getScoresViaCNN(self, test_image : np.ndarray):
+    def getScoresViaCNN(self, test_image : np.ndarray) -> list[tuple[str, float]]:
         '''
         Get scores via CNN method
 
@@ -163,14 +160,12 @@ class AttendanceRecording:
             for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
                 picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
                 T = self.pickler.load_back(picklePath) 
-                # name, db_image, _, db_image_embeddings = T[0], T[1], T[2], T[3]
-                name, db_image_embeddings = T[0], T[3]
+                name, db_image_embeddings = T[0], T[2]
                 score = self.CNN.compute_similarity_for_attendance(db_image_embeddings, test_image_embeddings)
-                # scores.append((name, score, db_image))
                 scores.append((name, score))
         return scores
 
-    def getScoresViaPretrainedModel(self, test_image : np.ndarray) -> list[tuple[str, float, np.ndarray]]:
+    def getScoresViaPretrainedModel(self, test_image : np.ndarray) -> list[tuple[str, float]]:
         '''
         Get scores via Pretrained Model method
 
@@ -183,10 +178,8 @@ class AttendanceRecording:
             for pickle in os.listdir(f"{self.faceDatabasePath}/{person}/features"):
                 picklePath = f"{self.faceDatabasePath}/{person}/features/{pickle}"
                 T = self.pickler.load_back(picklePath) 
-                # name, db_image, _, _, db_image_embeddings = T[0], T[1], T[2], T[3], T[4]
-                name, db_image_embeddings = T[0], T[4]
+                name, db_image_embeddings = T[0], T[3]
                 score = self.PretrainedModel.compute_similarity_for_attendance(db_image_embeddings, test_image_embeddings)
-                # scores.append((name, score, db_image))
                 scores.append((name, score))
         return scores
     
