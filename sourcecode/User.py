@@ -67,7 +67,7 @@ class UserEnrollment:
             for audioName in os.listdir(f"{self.audioOutputPath}/{personName}/audio"):
                 # get audio
                 audioPath = f"{self.audioOutputPath}/{personName}/audio/{audioName}"
-                audio, sr = self.speakerRecognition.readAudioFileIntoNpNdArray(audioPath)
+                audio, _ = self.speakerRecognition.readAudioFileIntoNpNdArray(audioPath)
 
                 # reenroll without saving audio again
                 self.enrollVoice(personName, audio, saveData=False)
