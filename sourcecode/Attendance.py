@@ -33,7 +33,7 @@ class AttendanceRecording:
         self.speakerRecognition = SpeakerRecognition()
 
 
-    def recordViaHybrid(self, attendance_file : str, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float]:
+    def recordViaHybrid(self, attendance_file : str, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float, float]:
         '''
         Similar to recordViaFace, will try to identify a user's presence in the video, authenticates with voice+face.
         # TODO: do i want to redesign the scoring of this?
@@ -64,18 +64,19 @@ class AttendanceRecording:
         top_voice_scorer = voice_scores[0]
         print(f"DEBUG: {top_voice_scorer=}")
 
+        noneTuple = (None, None, None)
         # for hybrid, be strict, need to ensure that top scorer for both face and voice match.
         if top_face_scorer[0] != top_voice_scorer[0]:
             print(f"INFO: Top Face Scorer name doesn't match Top Voice Scorer name.")
-            return None, None
+            return noneTuple
         
         if top_face_scorer[1] < faceScoreThreshold:
             print(f"INFO: Top Face Scorer doesn't pass threshold of {faceScoreThreshold}")
-            return None, None
+            return noneTuple
 
         if top_voice_scorer[1] < voiceScoreThreshold:
             print(f"INFO: Top Voice Scorer doesn't pass threshold of {voiceScoreThreshold}")
-            return None, None
+            return noneTuple
 
         username = top_face_scorer[0]
 
@@ -190,9 +191,13 @@ class AttendanceRecording:
         Returns:
             a list of tuples of (name, score) for each person's voice audio sample and stuff and the match score via mel spectrogram
         '''
-        scores = []
+        # preprocess audio, then create mel spectrogram representation of test Audio
+        testAudio = self.speakerRecognition.preprocessAudio(testAudio)
         _, mel_spectrogram_img = self.speakerRecognition.convertAudioToImageRepresentation(testAudio)
         test_mel_spectrogram_img_embeddings = self.PretrainedModel.process(mel_spectrogram_img)
+
+        # compute scores for matching test audio against db embeddings of voices
+        scores = []
         for person in os.listdir(self.voiceDatabasePath):
             for pickle in os.listdir(f"{self.voiceDatabasePath}/{person}/features"):
                 picklePath = f"{self.voiceDatabasePath}/{person}/features/{pickle}"
@@ -287,7 +292,7 @@ class AutomatedAttendanceTesting(AttendanceRecording):
         
         # check top score
         top_scorer = scores[0]
-        name, raw_score, _ = top_scorer[0], top_scorer[1], top_scorer[2]
+        name, raw_score = top_scorer[0], top_scorer[1]
 
         # if pass threshold check to see if match with ground truth
         if raw_score > scoreThreshold:
@@ -363,7 +368,7 @@ class AttendanceSystem:
         '''
         return self.user_enrollment.hybridEnroll(name, video, audio)
     
-    def recordAttenanceViaHybrid(self, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float]:
+    def recordAttenanceViaHybrid(self, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float, float]:
         '''
         only allow the use of the VGG feature extractor for both the video and the audio (mel_spectrogram) for now
 

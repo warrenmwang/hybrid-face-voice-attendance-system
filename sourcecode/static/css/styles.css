@@ -10,6 +10,12 @@ body {
     opacity: 1;
 }
 
+.subscreen {
+    position: absolute;
+    transition: opacity 0.1s;
+    opacity: 1;
+}
+
 .hidden {
     opacity: 0;
     pointer-events: none;

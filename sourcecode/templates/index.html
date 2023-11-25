@@ -105,10 +105,10 @@
         <h2 class="display-3" style="text-align:center;">Record Student Attendance</h2>
         <hr class="border border-secondary opacity-75">
         <button id="goToMainMenuFromRecordAttendance" type="button" class="btn btn-primary btn-lg">Main Menu</button><br>
-        <table style="width:100%">
-            <th style="text-align:left;padding-left:10px;width:65%;">
+        <table>
+            <th style="text-align:left;vertical-align:auto;padding-left:5px;width:65%;">
                 <!-- face only (shows by default) -->
-                <div id="record_attendance_face_only_screen" class="screen" style="width:100%;">
+                <div id="record_attendance_face_only_screen" class="screen">
                     <h4 class="display-5">Face Only</h3>
                     <button id="goToHybridAttenanceFromFaceOnly" type="button" class="btn btn-secondary btn-lg">Hybrid Attendance</button>
                     <br>
@@ -149,9 +149,7 @@
                     <h4 class="display-5">Hybrid (Face + Voice)</h3>
                     <button id="goToFaceOnlyAttenanceFromHybrid" type="button" class="btn btn-secondary btn-lg">Face Only Attendance</button>
                     <br>
-                    <!-- TODO: -->
-
-                    <p>Please say the phrase "The quick brown fox jumps over the lazy dog"</p>
+                    <h5>Please say the phrase <b>"The quick brown fox jumps over the lazy dog"</b></h5>
                     <p>Face Score Threshold:</p>
                     <input type="number" step="0.01" min="0.0" max="1.0" value="0.7" id="hybridAttendanceFaceScoreThresholdInput"><br><br>
                     <p>Voice Score Threshold:</p>
@@ -178,7 +176,7 @@
  
                 </div>
             </th>
-            <th style="text-align:right;width:35%">
+            <th style="text-align:right;vertical-align:auto;padding-right:5px;width:35%">
                 <video id="attendanceVideo" width="640" height="480" autoplay></video><br>
             </th>
         </table>
@@ -192,40 +190,38 @@
         <button id="goToMainMenuFromBenchmarking" type="button" class="btn btn-primary btn-lg">Main Menu</button><br><br>
 
         <table>
-            <tr>
-                <th style="text-align:left;">
-                    <!-- Automatic testing of all three Systems -->
-                    <h3>Automated Testing and Evaluation of Feature Extraction Methods</h3>
+            <th style="text-align:left;">
+                <!-- Automatic testing of all three Systems -->
+                <h3>Automated Testing and Evaluation of Feature Extraction Methods</h3>
 
-                    <p>Number of iterations to run for each Method:</p>
-                    <input id="automatedAttendanceTestingNumIters" type="number" value="10"><br>
-                    <p>Name of person present (Ground Truth):</p>
-                    <input id="automatedAttendanceTestingGroundTruth" type="text"><br><br>
-                    Similarity Score Thresholds:<br>
-                    SIFT: <input type="number" step="0.01" min="0.0" max="1.0" value="0.3" id="automatedAttendanceTestingScoreThresholdInput_SIFT"><br>
-                    CNN: <input type="number" step="0.01" min="0.0" max="1.0" value="0.4" id="automatedAttendanceTestingScoreThresholdInput_CNN"><br>
-                    VGG19: <input type="number" step="0.01" min="0.0" max="1.0" value="0.7" id="automatedAttendanceTestingScoreThresholdInput_VGG"><br>
-                    <br>
-                    <button id="automatedAttendanceTestingStart" type="button" class="btn btn-success">Start</button>
-                    <hr class="border border-secondary opacity-75">
+                <p>Number of iterations to run for each Method:</p>
+                <input id="automatedAttendanceTestingNumIters" type="number" value="10"><br>
+                <p>Name of person present (Ground Truth):</p>
+                <input id="automatedAttendanceTestingGroundTruth" type="text"><br><br>
+                Similarity Score Thresholds:<br>
+                SIFT: <input type="number" step="0.01" min="0.0" max="1.0" value="0.3" id="automatedAttendanceTestingScoreThresholdInput_SIFT"><br>
+                CNN: <input type="number" step="0.01" min="0.0" max="1.0" value="0.4" id="automatedAttendanceTestingScoreThresholdInput_CNN"><br>
+                VGG19: <input type="number" step="0.01" min="0.0" max="1.0" value="0.7" id="automatedAttendanceTestingScoreThresholdInput_VGG"><br>
+                <br>
+                <button id="automatedAttendanceTestingStart" type="button" class="btn btn-success">Start</button>
+                <hr class="border border-secondary opacity-75">
 
-                    <h4>Testing Outputs:</h4>
-                    <button id="automatedAttendanceTestingClearDisplay" type="button" class="btn btn-info">Clear</button>
-                    <table style="width:100%" id="automatedAttendanceTestingDisplayField">
-                        <tr>
-                            <th>Name</th>
-                            <th>Raw Similarity Score</th>
-                            <th>Score Threshold</th>
-                        </tr>
-                    </table>
-                </th>
-                <th>
-                    <video id="benchmarkingVideo" width="640" height="480" autoplay></video><br>
-                    <h4>Final Results</h4>
-                    <button id="automatedAttendanceTestingClearFinalResultsDisplay" type="button" class="btn btn-info">Clear</button>
-                    <div id="automatedAttendanceTestingFinalResultsDisplayField"></div>
-                </th>
-            </tr>
+                <h4>Testing Outputs:</h4>
+                <button id="automatedAttendanceTestingClearDisplay" type="button" class="btn btn-info">Clear</button>
+                <table style="width:100%" id="automatedAttendanceTestingDisplayField">
+                    <tr>
+                        <th>Name</th>
+                        <th>Raw Similarity Score</th>
+                        <th>Score Threshold</th>
+                    </tr>
+                </table>
+            </th>
+            <th style="vertical-align: top;">
+                <video id="benchmarkingVideo" width="640" height="480" autoplay></video><br>
+                <h4>Final Results</h4>
+                <button id="automatedAttendanceTestingClearFinalResultsDisplay" type="button" class="btn btn-info">Clear</button>
+                <div id="automatedAttendanceTestingFinalResultsDisplayField"></div>
+            </th>
         </table>
     </div>
 
