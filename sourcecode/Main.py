@@ -116,12 +116,17 @@ def attendanceHybrid():
     
     os.remove("temp.webm")
 
-    scoreThreshold = 0.5 # TODO:
-    name, raw_score = system.recordAttenanceViaHybrid(video_frames, audio_samples, scoreThreshold)
-    print(f"DEBUG: {name=} {raw_score=}")
+    faceScoreThreshold = float(request.form.get('faceScoreThreshold'))
+    voiceScoreThreshold = float(request.form.get('voiceScoreThreshold'))
+
+    name, face_score, voice_score = system.recordAttenanceViaHybrid(video_frames, audio_samples, faceScoreThreshold, voiceScoreThreshold)
+    print(f"DEBUG: {name=} {face_score=} {voice_score=}")
     return jsonify({'name': name,
-                    'raw_score': raw_score, 
-                    'score_threshold': scoreThreshold}), 200
+                    'faceScore': face_score, 
+                    'voiceScore': voice_score,
+                    'faceScoreThreshold': faceScoreThreshold,
+                    'voiceScoreThreshold': voiceScoreThreshold
+                    }), 200 
 
 
 @app.route('/reset_attendance', methods=['POST'])

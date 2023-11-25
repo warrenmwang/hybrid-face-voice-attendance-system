@@ -5,7 +5,6 @@ import re
 from Pickling import PickleHelper
 import numpy as np
 from SpeakerRecognition import SpeakerRecognition
-import copy
 
 def countFilesInDir(dir : str) -> int:
     # NOTE: running this over and over, with a large db, will be slow O(n). but since my db is smol, doesn't matter.

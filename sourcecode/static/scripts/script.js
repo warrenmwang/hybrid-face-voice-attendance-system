@@ -477,6 +477,32 @@ let hybridAttendanceMarkedPresentElements = [];
 let hybridAttendanceVideoDisplayElements = [];
 let hybridAttendanceRecordedChunks = [];
 
+function addFiveColumnRowToTable(table, trackList, col1, col2, col3, col4, col5) {
+    // adds a row with the contents col1, col2, col3, col4, col5, into the given table
+    // also adds the new row into the trackList to keep a reference to delete the row later
+    var row = document.createElement('tr');
+    var cell1 = document.createElement('td');
+    var cell2 = document.createElement('td');
+    var cell3 = document.createElement('td');
+    var cell4 = document.createElement('td');
+    var cell5 = document.createElement('td');
+
+    cell1.innerHTML = col1;
+    cell2.innerHTML = col2;
+    cell3.innerHTML = col3;
+    cell4.innerHTML = col4;
+    cell5.innerHTML = col5;
+
+    row.appendChild(cell1);
+    row.appendChild(cell2);
+    row.appendChild(cell3);
+    row.appendChild(cell4);
+    row.appendChild(cell5);
+
+    table.appendChild(row);
+    trackList.push(row);
+}
+
 document.getElementById('hybridAttendanceStartRecording').addEventListener('click', function() {
     if (!stream) {
         console.error('No video stream up and running');
@@ -522,6 +548,9 @@ document.getElementById('hybridAttendanceStopRecording').addEventListener('click
         // put video in formdata to be sent to backend
         var formData = new FormData();
         formData.append('videoAndAudio', recordedBlob);
+        // grab face and voice score thresholds and put into form
+        formData.append('faceScoreThreshold', document.getElementById('hybridAttendanceFaceScoreThresholdInput').value)
+        formData.append('voiceScoreThreshold', document.getElementById('hybridAttendanceVoiceScoreThresholdInput').value)
 
         // send to backend
         fetch('/attendanceHybrid', {
@@ -532,10 +561,8 @@ document.getElementById('hybridAttendanceStopRecording').addEventListener('click
         .then(data => {
             if (data.name) {
                 // show who was marked present if message is not Null
-                // expect (name, raw_score, score_threshold)
                 var table = document.getElementById('hybridAttendanceMarkedPresentField');
-                addThreeColumnRowToTable(table, hybridAttendanceMarkedPresentElements, data.name, data.raw_score, data.score_threshold);
-                console.log(`DEBUG: name:${data.name} raw_score:${data.raw_score} score_threshold:${data.score_threshold}`)
+                addFiveColumnRowToTable(table, hybridAttendanceMarkedPresentElements, data.name, data.faceScore, data.voiceScore, data.faceScoreThreshold, data.voiceScoreThreshold);
             }
         });
     });

@@ -33,7 +33,7 @@ class AttendanceRecording:
         self.speakerRecognition = SpeakerRecognition()
 
 
-    def recordViaHybrid(self, attendance_file : str, video : np.ndarray, audio : np.ndarray, scoreThreshold : float) -> tuple[str, float]:
+    def recordViaHybrid(self, attendance_file : str, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float]:
         '''
         Similar to recordViaFace, will try to identify a user's presence in the video, authenticates with voice+face.
 
@@ -65,22 +65,24 @@ class AttendanceRecording:
         top_voice_scorer = voice_scores[0]
         print(f"DEBUG: {top_voice_scorer=}")
 
-        # combine face and voice scores
-        # TODO: How to do hybrid identification with two data modalities? image+audio??
-        # just combine the embedding vectors and do cosine similarity?
-        # scores = []
-        # FIXME: temporary setting -- use regular face for now...
-        top_scorer = top_face_scorer
-
-        name, raw_score = top_scorer[0], top_scorer[1]
-        if raw_score > scoreThreshold:
-            username = name
-
-        if username is None:
-            print(f"INFO: Top scorer doesn't pass confidence threshold")
+        # for hybrid, be strict, need to ensure that top scorer for both face and voice match.
+        if top_face_scorer[0] != top_voice_scorer[0]:
+            print(f"INFO: Top Face Scorer name doesn't match Top Voice Scorer name.")
             return None, None
+        
+        if top_face_scorer[1] < faceScoreThreshold:
+            print(f"INFO: Top Face Scorer doesn't pass threshold of {faceScoreThreshold}")
+            return None, None
+
+        if top_voice_scorer[1] < voiceScoreThreshold:
+            print(f"INFO: Top Voice Scorer doesn't pass threshold of {voiceScoreThreshold}")
+            return None, None
+
+        username = top_face_scorer[0]
+
         if self.take_attendance_for_username(username, attendance_file):
-            return username, raw_score
+            return username, top_face_scorer[1], top_voice_scorer[1]
+
         print(f"INFO: {username} has recently already been logged for attendance.")
         return None, None
 
@@ -368,7 +370,7 @@ class AttendanceSystem:
         '''
         return self.user_enrollment.hybridEnroll(name, video, audio)
     
-    def recordAttenanceViaHybrid(self, video : np.ndarray, audio : np.ndarray, scoreThreshold : float) -> tuple[str, float]:
+    def recordAttenanceViaHybrid(self, video : np.ndarray, audio : np.ndarray, faceScoreThreshold : float, voiceScoreThreshold : float) -> tuple[str, float]:
         '''
         only allow the use of the VGG feature extractor for both the video and the audio (mel_spectrogram) for now
 
@@ -377,7 +379,7 @@ class AttendanceSystem:
             score (float): match score
                 both are None if not pass given threshold
         '''
-        return self.attendance_recording.recordViaHybrid(self.attendance_file, video, audio, scoreThreshold)
+        return self.attendance_recording.recordViaHybrid(self.attendance_file, video, audio, faceScoreThreshold, voiceScoreThreshold)
 
     def enrollImage(self, name, picture) -> np.ndarray:
         '''

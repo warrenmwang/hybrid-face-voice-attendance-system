@@ -152,6 +152,11 @@
                     <!-- TODO: -->
 
                     <p>Please say the phrase "The quick brown fox jumps over the lazy dog"</p>
+                    <p>Face Score Threshold:</p>
+                    <input type="number" step="0.01" min="0.0" max="1.0" value="0.7" id="hybridAttendanceFaceScoreThresholdInput"><br><br>
+                    <p>Voice Score Threshold:</p>
+                    <input type="number" step="0.01" min="0.0" max="1.0" value="0.9" id="hybridAttendanceVoiceScoreThresholdInput"><br><br>
+
                     <button id="hybridAttendanceStartRecording" type="button" class="btn btn-secondary btn-lg">Start</button>
                     <button id="hybridAttendanceStopRecording" type="button" class="btn btn-secondary btn-lg">Stop</button><br><br>
                     <div id="hybridAttendanceDisplay"></div> <!-- where the recorded video gets displayed -->
@@ -164,8 +169,10 @@
                     <table id="hybridAttendanceMarkedPresentField" style="width:100%;">
                         <tr>
                             <th>Name</th>
-                            <th>Raw Similarity Score</th>
-                            <th>Score Threshold</th>
+                            <th>Face Similarity Score</th>
+                            <th>Voice Similarity Score</th>
+                            <th>Face Score Threshold</th>
+                            <th>Voice Score Threshold</th>
                         </tr>
                     </table>
  
