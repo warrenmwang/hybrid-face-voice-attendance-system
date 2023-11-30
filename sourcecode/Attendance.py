@@ -355,7 +355,6 @@ class AttendanceSystem:
         self.attendance_file = "attendance.csv"
         self.user_enrollment = UserEnrollment()
         self.attendance_recording = AttendanceRecording(self.databasePath)
-        self.attendance_plotting = AttendancePlotting()
         self.automated_attendance_testing = AutomatedAttendanceTesting(self.databasePath)
         # make attendance file if not exists
         if not os.path.exists(self.attendance_file):
@@ -398,7 +397,26 @@ class AttendanceSystem:
         return self.attendance_recording.recordViaFace(self.attendance_file, image, featureExtractionMethod, scoreThreshold)
 
     def plotAttendance(self) -> BytesIO:
-        return self.attendance_plotting.plot(self.attendance_file)
+        '''
+        Returns the created histogram figure of people vs frequency of marked attendance image to be displayed on frontend
+        '''
+        df = pd.read_csv(self.attendance_file, names=['user', 'timestamp'])
+
+        # Count the occurrences of each user
+        user_counts = df['user'].value_counts()
+
+        # Create the histogram
+        fig, ax = plt.subplots(figsize=(7,7))
+        ax.bar(user_counts.index, user_counts.values)
+        ax.set_xlabel('User')
+        ax.set_ylabel('Count')
+        ax.set_title('User Occurrences')
+
+        # Save the figure into a BytesIO object and return it 
+        buf = BytesIO()
+        fig.savefig(buf, format='png')
+        buf.seek(0)
+        return buf
 
     def resetAttendance(self) -> None:
         # resets the current attendance session
@@ -420,30 +438,3 @@ class AttendanceSystem:
 
     def automatedAttendanceTestingStop(self) -> str:
         return self.automated_attendance_testing.stop()
-
-
-class AttendancePlotting:
-    def plot(self, attendance_file : str) -> BytesIO:
-        '''
-        Returns the created figure image to be displayed on frontend
-        Students should implement the following:
-        1. Analyze attendance.csv.
-        2. Plot the number of presence for each student.
-        '''
-        df = pd.read_csv(attendance_file, names=['user', 'timestamp'])
-
-        # Count the occurrences of each user
-        user_counts = df['user'].value_counts()
-
-        # Create the histogram
-        fig, ax = plt.subplots(figsize=(7,7))
-        ax.bar(user_counts.index, user_counts.values)
-        ax.set_xlabel('User')
-        ax.set_ylabel('Count')
-        ax.set_title('User Occurrences')
-
-        # Save the figure into a BytesIO object and return it 
-        buf = BytesIO()
-        fig.savefig(buf, format='png')
-        buf.seek(0)
-        return buf
