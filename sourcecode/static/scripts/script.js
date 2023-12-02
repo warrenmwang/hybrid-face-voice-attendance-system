@@ -548,9 +548,6 @@ document.getElementById('hybridAttendanceStopRecording').addEventListener('click
         // put video in formdata to be sent to backend
         var formData = new FormData();
         formData.append('videoAndAudio', recordedBlob);
-        // grab face and voice score thresholds and put into form
-        formData.append('faceScoreThreshold', document.getElementById('hybridAttendanceFaceScoreThresholdInput').value)
-        formData.append('voiceScoreThreshold', document.getElementById('hybridAttendanceVoiceScoreThresholdInput').value)
 
         // send to backend
         fetch('/attendanceHybrid', {
@@ -562,7 +559,7 @@ document.getElementById('hybridAttendanceStopRecording').addEventListener('click
             if (data.name) {
                 // show who was marked present if message is not Null
                 var table = document.getElementById('hybridAttendanceMarkedPresentField');
-                addFiveColumnRowToTable(table, hybridAttendanceMarkedPresentElements, data.name, data.faceScore, data.voiceScore, data.faceScoreThreshold, data.voiceScoreThreshold);
+                addFiveColumnRowToTable(table, hybridAttendanceMarkedPresentElements, data.name, data.faceScore, data.voiceScore, data.faceScoreWeight, data.voiceScoreWeight);
             }
         });
     });

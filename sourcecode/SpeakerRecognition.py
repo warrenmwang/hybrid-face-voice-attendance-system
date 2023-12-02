@@ -6,7 +6,7 @@ import cv2
 import soundfile
 import noisereduce as nr
 
-SAMPLE_RATE=48000*2 # FIXME: fuck, why do i need a times 2 here it's supposed to be 48000:cry:
+SAMPLE_RATE=48000*2 # FIXME: fuck, why do i need a times 2 here it's supposed to be 48000 -- it works tho.
 
 class SpeakerRecognition:
     def readAudioFileIntoNpNdArray(self, filename:str)->np.ndarray:
@@ -46,7 +46,7 @@ class SpeakerRecognition:
         2. Audio Normalization to -20 dBFS
         '''
         if str(audio.dtype) != "float64":
-            audio = audio.astype(float) # TODO: god i hope this will work ok...
+            audio = audio.astype(float) 
 
         # noise reduction
         cleaned_audio = nr.reduce_noise(y=audio, sr=sr)

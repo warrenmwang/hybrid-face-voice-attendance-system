@@ -116,16 +116,13 @@ def attendanceHybrid():
     
     os.remove("temp.webm")
 
-    faceScoreThreshold = float(request.form.get('faceScoreThreshold'))
-    voiceScoreThreshold = float(request.form.get('voiceScoreThreshold'))
-
-    name, face_score, voice_score = system.recordAttenanceViaHybrid(video_frames, audio_samples, faceScoreThreshold, voiceScoreThreshold)
+    name, face_score, voice_score, faceScoreWeight, voiceScoreWeight = system.recordAttenanceViaHybrid(video_frames, audio_samples)
     print(f"DEBUG: {name=} {face_score=} {voice_score=}")
     return jsonify({'name': name,
                     'faceScore': face_score, 
                     'voiceScore': voice_score,
-                    'faceScoreThreshold': faceScoreThreshold,
-                    'voiceScoreThreshold': voiceScoreThreshold
+                    'faceScoreWeight': faceScoreWeight,
+                    'voiceScoreWeight': voiceScoreWeight
                     }), 200 
 
 
