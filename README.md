@@ -1,15 +1,22 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/QL3bmW4P)
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-718a45dd9cf7e7f842a935f5ebbe5719a5e09af4491e668f4dbf3b35d5cca122.svg)](https://classroom.github.com/online_ide?assignment_repo_id=12785468&assignment_repo_type=AssignmentRepo)
-# CS379F23-Project (Open ideas)
+## Hybrid Face and Voice Recognition Attendance System
+### Author: Warren Wang
 
-Attendance System using a hybrid of face and voice recognition. 
+Web ui for a hybrid face and voice recognition attendance system. 
+Originally written for a college elective class on Introduction to Biometrics. 
 
-Please use python version `3.11.0` and the `pip` packages in `sourcecode/requirements.txt`
+### Getting Started
 
-## Instructions
+Via pip:
+```
+pip install -r requirements.txt
+cd sourcecode
+python ./Main.py
+```
 
-Please [click here to see the detailed google document](https://docs.google.com/document/d/1ENeze60Esmabz6vWo7Hfej4e1kSMGTHMWu6HYMkflX4/edit?usp=sharing)
+Go to localhost:5000, uses Flask production web server defaults.
 
-## Literature Review Report Template
+### Tech stack
 
-[click here to see Literature Review Report Template](https://docs.google.com/document/d/1eoWzLTMzrPC5Rs4kDbHFSGodwr5nmACT-R40rvPwxLI/edit?usp=sharing)
+Front-end: HTML, CSS, JS
+
+Back-end: Python (Flask, OpenCV, Tensorflow/Keras, matplotlib, numpy, etc.)
