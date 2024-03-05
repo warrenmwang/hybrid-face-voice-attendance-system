@@ -361,6 +361,7 @@ class AutomatedAttendanceTesting(AttendanceRecording):
 class AttendanceSystem:
     def __init__(self):
         self.databasePath = os.getenv('DB')
+        assert self.databasePath is not None, "DB env var is empty, did you add it to your .env?"
         if not os.path.exists(self.databasePath): os.mkdir(self.databasePath)
         self.attendance_file = "attendance.csv"
         if not os.path.exists(self.attendance_file): touch(self.attendance_file)
