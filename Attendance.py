@@ -10,6 +10,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 from io import BytesIO
 from SpeakerRecognition import SpeakerRecognition
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # toggles for running as webserver
 plt.ioff() # turn off matplotlib interactive mode
@@ -25,7 +28,9 @@ class AttendanceRecording:
         self.recently_recognized_students = {} # username -> logged in time (datetime)
         self.databasePath = databasePath
         self.faceDatabasePath = f"{databasePath}/face"
+        if not os.path.exists(self.faceDatabasePath): os.mkdir(self.faceDatabasePath)
         self.voiceDatabasePath = f"{databasePath}/voice"
+        if not os.path.exists(self.voiceDatabasePath): os.mkdir(self.voiceDatabasePath)
         self.pickler = PickleHelper()
         self.SIFT = SIFT()
         self.CNN = CNN()
@@ -355,14 +360,13 @@ class AutomatedAttendanceTesting(AttendanceRecording):
 
 class AttendanceSystem:
     def __init__(self):
-        self.databasePath = './database'
+        self.databasePath = os.getenv('DB')
+        if not os.path.exists(self.databasePath): os.mkdir(self.databasePath)
         self.attendance_file = "attendance.csv"
+        if not os.path.exists(self.attendance_file): touch(self.attendance_file)
         self.user_enrollment = UserEnrollment()
         self.attendance_recording = AttendanceRecording(self.databasePath)
         self.automated_attendance_testing = AutomatedAttendanceTesting(self.databasePath)
-        # make attendance file if not exists
-        if not os.path.exists(self.attendance_file):
-            touch(self.attendance_file)
 
     def hybridEnroll(self, name : str, video : np.ndarray, audio : np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
         '''

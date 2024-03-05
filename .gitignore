@@ -1,7 +1,8 @@
 database/
 __pycache__/
-*.csv
 tmp/
+*.csv
 *.pkl
 *.ipynb
 *.mov
+.env

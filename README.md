@@ -8,12 +8,12 @@ Originally written for a college elective class on Introduction to Biometrics.
 
 Via pip:
 ```
+conda create -n ENV_NAME python=3.11.0
 pip install -r requirements.txt
-cd sourcecode
 python ./Main.py
 ```
 
-Go to localhost:5000, uses Flask production web server defaults.
+Go to localhost:5000, uses Flask development web server as default.
 
 ### Tech stack
 
